@@ -43,13 +43,14 @@ class OnboardingScreen extends StatelessWidget {
             colors: [Color(0xFF6B4DFF), Color(0xFFB966FF)],
           ),
         ),
-        child: FloatingActionButton(
+        child: FloatingActionButton.extended(
           onPressed: () {
             Get.off(() => LoginScreen());
           },
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.white,
           elevation: 8,
-          child: Icon(Icons.arrow_forward, color: Colors.white),
+          icon: Icon(Icons.arrow_forward,),
+          label: Text("Pular" ),
         ).animate().fade(duration: 500.ms).moveY(begin: 20, end: 0),
       ),
     );

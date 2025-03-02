@@ -1,8 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/gestures.dart';
 import 'package:stivy/views/auth/Login/login_screen.dart';
+import 'package:stivy/views/home/home_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:stivy/services/api_service.dart';
+import 'package:stivy/controllers/storage_controller.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -17,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   String? _selectedRole;
+  File? _imageFile;
 
   final List<Map<String, String>> roles = [
     {'label': 'Amante de Moda', 'value': 'fashion_lover'},
@@ -25,6 +33,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
     {'label': 'Designer de Moda', 'value': 'designer'},
     {'label': 'Agencia', 'value': 'agency'},
   ];
+
+  Map<String, dynamic>? _userData;
+  Map<String, dynamic>? get userData => _userData;
+  final StorageController _storageData = StorageController();
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _registerUser() async {
+    if (_usernameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty ||
+        _selectedRole == null ||
+        _imageFile == null) {
+      Get.snackbar('Erro', 'Por favor, preencha todos os campos e selecione uma imagem.');
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      Get.snackbar('Erro', 'As senhas não coincidem.');
+      return;
+    }
+
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiService.apiBaseUrl}/users/create'),
+    );
+
+    request.fields['username'] = _usernameController.text;
+    request.fields['email'] = _emailController.text;
+    request.fields['password'] = _passwordController.text;
+    request.fields['role'] = _selectedRole!;
+
+    var file = await http.MultipartFile.fromPath('file', _imageFile!.path);
+    request.files.add(file);
+
+    var response = await request.send();
+
+      var responseData = await response.stream.bytesToString();
+
+      var responseMap = jsonDecode(responseData) as Map<String, dynamic>; 
+      
+      await _storageData.addStorage("auth", responseMap);
+      print('📦 Dados salvos no storage $responseMap');
+
+    if (response.statusCode == 200) {
+      Get.snackbar('Sucesso', 'Usuário cadastrado com sucesso!');
+      Get.to(() => HomeScreen());
+    } else {
+      Get.snackbar('Erro', 'Falha ao cadastrar usuário.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,15 +163,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                   });
                 }),
+                SizedBox(height: 16),
+                // Image Picker
+                Container(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _pickImage,
+                    child: Text(
+                      _imageFile == null ? 'Selecionar Imagem' : 'Imagem Selecionada',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
                 SizedBox(height: 24),
                 // Register Button
                 Container(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Implementar lógica de registro
-                    },
+                    onPressed: _registerUser,
                     child: Text(
                       'Cadastrar',
                       style: TextStyle(

@@ -71,7 +71,7 @@ class PostDetailsScreen extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {},
-                      child: Text('Seguir'),
+                      child: Text('Contactar'),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.blue,
                         padding: EdgeInsets.symmetric(horizontal: 20),

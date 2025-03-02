@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+
+import 'package:provider/provider.dart';
+import 'package:stivy/providers/user_provider.dart';
+import 'package:stivy/views/auth/login/login_screen.dart';
+import 'package:stivy/views/home/home_screen.dart';
 import 'package:stivy/views/initial/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -15,9 +20,24 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 5), () {
+    _checkUserState();
+  }
+
+  Future<void> _checkUserState() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    await Future.delayed(Duration(seconds: 2)); // Tempo de exibição do splash
+
+    if (userProvider.isLoggedIn) {
+      // Se o usuário estiver logado, vá para a Home
+      Get.off(() => HomeScreen());
+    } else if (userProvider.hasSeenOnboarding) {
+      // Se o usuário já viu a onboarding, vá para o Login
+      Get.off(() => LoginScreen());
+    } else {
+      // Se o usuário nunca viu a onboarding, mostre a onboarding
       Get.off(() => OnboardingScreen());
-    });
+    }
   }
 
   @override
@@ -43,7 +63,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   .animate()
                   .fadeIn(duration: const Duration(seconds: 1))
                   .scale(delay: const Duration(milliseconds: 500)),
-              
               SizedBox(height: 20),
               DefaultTextStyle(
                 style: TextStyle(
