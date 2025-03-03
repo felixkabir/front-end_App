@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:stivy/Api/ApiConfig.dart';
+import 'package:stivy/controllers/storage_controller.dart';
+import 'package:stivy/providers/user_provider.dart';
 import 'package:stivy/views/auth/cadastro/register_screen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:stivy/views/home/home_screen.dart';
+import 'package:stivy/views/home/mainScreen.dart';
 import 'package:http/http.dart' as http;
-import 'package:stivy/services/api_service.dart';
-import 'dart:convert' ;
+import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -18,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   final _formKey = GlobalKey<FormState>(); // Chave para o formulário
+  final StorageController _storageStorage = StorageController();
 
   // Função para validar o email
   String? _validateEmail(String? value) {
@@ -60,64 +64,66 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
 // Função para realizar o login
-Future<void> _login() async {
-  if (_formKey.currentState!.validate()) {
-    final email = _emailController.text;
-    final password = _passwordController.text;
+  Future<void> _login() async {
+    if (_formKey.currentState!.validate()) {
+      final email = _emailController.text;
+      final password = _passwordController.text;
 
-    try {
-      final Map<String, dynamic> requestBody = {
-        'email': email,
-        'password': password,
-      };
+      try {
+        final Map<String, dynamic> requestBody = {
+          'email': email,
+          'password': password,
+        };
 
-      final response = await http.post(
-        Uri.parse('https://stivy-backend-ec0c.onrender.com/auth/user/login'), 
-        headers: {
-          'Content-Type': 'application/json', 
-        },
-        body: json.encode(requestBody), // Converte o corpo para JSON
-      );
+        final response = await http.post(
+          Uri.parse('${ApiConfig.apiBaseUrl}/auth/user/login'),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: json.encode(requestBody),
+        );
+        
+        if (response.statusCode == 200) {
 
-      // Verifica o status da resposta
-      if (response.statusCode == 200) {
-        // Login bem-sucedido
-        final responseData = jsonDecode(response.body);
-        print('Login bem-sucedido: $responseData');
+          final responseData = jsonDecode(response.body);
+          print('Login bem-sucedido: $responseData');
 
-        // Exemplo de como acessar os dados do usuário e o token
-        final user = responseData['user'];
-        final token = responseData['token'];
+          final _userData = {
+            ...responseData, // Copia todos os dados da resposta
+            'user': responseData['user'], // Dados do usuário
+            'access_token': responseData['token'], // Token de acesso
+          };
 
-        print('Usuário: ${user['username']}');
-        print('Token: $token');
+          final userProvider =
+              Provider.of<UserProvider>(context, listen: false);
+          userProvider
+              .setUser(responseData['user']); // Atualiza o estado do usuário
+          await _storageStorage.addStorage("auth", _userData);
 
-        // Navega para a tela inicial
-        Get.to(() => HomeScreen());
-      } else {
-        // Erro no login
-        final errorMessage = jsonDecode(response.body)['message'] ?? 'Erro no login';
+          Get.to(() => MainScreen());
+        } else {
+          final errorMessage =
+              jsonDecode(response.body)['message'] ?? 'Erro no login';
+          Get.snackbar(
+            'Erro',
+            errorMessage,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
+      } catch (e) {
+        print('Erro durante o login: $e');
         Get.snackbar(
           'Erro',
-          errorMessage,
+          'Não foi possível Fazer o Login, Tente mais tarde',
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
       }
-    } catch (e) {
-      // Erro de conexão ou servidor
-      print('Erro durante o login: $e');
-      Get.snackbar(
-        'Erro',
-        'Não foi possível conectar ao servidor',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
     }
   }
-}
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -254,6 +260,21 @@ Future<void> _login() async {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                      ),
+                    ),
+                  ),
+                  // No LoginScreen
+                  TextButton(
+                    onPressed: () {
+                      Provider.of<UserProvider>(context, listen: false)
+                          .setGuestMode(true);
+                      Get.off(() => MainScreen());
+                    },
+                    child: Text(
+                      'Entrar como Visitante',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

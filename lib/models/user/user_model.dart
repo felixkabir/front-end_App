@@ -1,3 +1,5 @@
+import 'package:stivy/models/agency/agency_model.dart';
+
 class User {
   final String id;
   final String createdAt;
@@ -6,6 +8,8 @@ class User {
   final String? fileKey;
   final String email;
   final String password;
+  final bool onlineStatus;
+  final List<Agency> agencies;
 
   User({
     required this.id,
@@ -15,7 +19,9 @@ class User {
     this.fileKey,
     required this.email,
     required this.password,
-  });
+    required this.onlineStatus,
+      List<Agency>? agencies, 
+  }) : agencies = agencies ?? [];
 
   // Converte o objeto User para um Map (JSON)
   Map<String, dynamic> toJson() {
@@ -27,6 +33,8 @@ class User {
       'file_key': fileKey,
       'email': email,
       'password': password,
+      'online_status': onlineStatus,
+      'agencies': agencies.map((agency) => agency.toJson()).toList(),
     };
   }
 
@@ -40,6 +48,12 @@ class User {
       fileKey: json['file_key'],
       email: json['email'],
       password: json['password'],
+      onlineStatus: json['online_status'] ?? false,
+      agencies: json['agencies'] != null
+          ? (json['agencies'] as List)
+              .map((agency) => Agency.fromJson(agency))
+              .toList()
+          : [],
     );
   }
 }

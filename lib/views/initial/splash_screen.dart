@@ -6,7 +6,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:stivy/providers/user_provider.dart';
 import 'package:stivy/views/auth/login/login_screen.dart';
-import 'package:stivy/views/home/home_screen.dart';
+import 'package:stivy/views/home/mainScreen.dart';
 import 'package:stivy/views/initial/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -26,16 +26,12 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkUserState() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    await Future.delayed(Duration(seconds: 2)); // Tempo de exibição do splash
-
+    await Future.delayed(Duration(seconds: 2)); 
     if (userProvider.isLoggedIn) {
-      // Se o usuário estiver logado, vá para a Home
-      Get.off(() => HomeScreen());
+      Get.off(() => MainScreen());
     } else if (userProvider.hasSeenOnboarding) {
-      // Se o usuário já viu a onboarding, vá para o Login
       Get.off(() => LoginScreen());
     } else {
-      // Se o usuário nunca viu a onboarding, mostre a onboarding
       Get.off(() => OnboardingScreen());
     }
   }

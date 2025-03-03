@@ -1,98 +1,66 @@
-// First, let's define our data models
+import 'package:stivy/models/user/user_model.dart';
 class Post {
   final String id;
+  final DateTime createdAt;
+  final String? content;
+  final String type;
   final String userId;
-  final String userImage;
-  final String userName;
-  final String userType; // 'model', 'photographer', 'agency'
-  final String timeAgo;
-  final String content;
-  final List<String> images;
-  final int likes;
-  final int comments;
-  final int shares;
-  final String eventDate; // For future events
-  final bool isPastEvent;
-  final String location;
-  final List<Comment> commentsList;
+  final String? agencyId;
+  final String? modelId;
+  final List<FileEntity> fileEntities;
+  final User user;
 
   Post({
     required this.id,
+    required this.createdAt,
+    this.content,
+    required this.type,
     required this.userId,
-    required this.userImage,
-    required this.userName,
-    required this.userType,
-    required this.timeAgo,
-    required this.content,
-    required this.images,
-    required this.likes,
-    required this.comments,
-    required this.shares,
-    this.eventDate = '',
-    this.isPastEvent = false,
-    this.location = '',
-    this.commentsList = const [],
+    this.agencyId,
+    this.modelId,
+    required this.fileEntities,
+    required this.user,
   });
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
+      id: json['id'],
+      createdAt: DateTime.parse(json['created_at']),
+      content: json['content'],
+      type: json['type'],
+      userId: json['userId'],
+      agencyId: json['agencyId'],
+      modelId: json['modelId'],
+      fileEntities: (json['file_entity'] as List)
+          .map((file) => FileEntity.fromJson(file))
+          .toList(),
+      user: User.fromJson(json['user']),
+    );
+  }
 }
 
-class Comment {
+class FileEntity {
   final String id;
-  final String userId;
-  final String userName;
-  final String userImage;
-  final String content;
-  final String timeAgo;
+  final String fileUrl;
+  final String fileKey;
+  final String? modelId;
+  final String postId;
 
-  Comment({
+  FileEntity({
     required this.id,
-    required this.userId,
-    required this.userName,
-    required this.userImage,
-    required this.content,
-    required this.timeAgo,
+    required this.fileUrl,
+    required this.fileKey,
+    this.modelId,
+    required this.postId,
   });
-}
 
-// Sample data
-final List<Post> samplePosts = [
-  Post(
-    id: '1',
-    userId: 'user1',
-    userImage: 'assets/img1.jpg',
-    userName: 'Isabella Model',
-    userType: 'model',
-    timeAgo: '2h ago',
-    content: 'Just finished an amazing photoshoot for Summer Collection 2024! 🌟',
-    images: ['assets/img2.jpg', 'assets/img4.jpg'],
-    likes: 234,
-    comments: 45,
-    shares: 12,
-    commentsList: [
-      Comment(
-        id: 'c1',
-        userId: 'user2',
-        userName: 'John Photographer',
-        userImage: 'assets/img2.jpg',
-        content: 'Amazing work! The lighting is perfect.',
-        timeAgo: '1h ago',
-      ),
-    ],
-  ),
-  Post(
-    id: '2',
-    userId: 'user2',
-    userImage: 'assets/img4.jpg',
-    userName: 'Fashion Agency Pro',
-    userType: 'agency',
-    timeAgo: '5h ago',
-    content: 'Looking for models for our upcoming winter collection showcase!',
-    images: ['assets/img1.jpg'],
-    likes: 567,
-    comments: 89,
-    shares: 34,
-    eventDate: 'March 15, 2024',
-    location: 'Milan Fashion Studio',
-    isPastEvent: false,
-    commentsList: [],
-  ),
-];
+  factory FileEntity.fromJson(Map<String, dynamic> json) {
+    return FileEntity(
+      id: json['id'],
+      fileUrl: json['file_url'],
+      fileKey: json['file_key'],
+      modelId: json['modelId'],
+      postId: json['postId'],
+    );
+  }
+}

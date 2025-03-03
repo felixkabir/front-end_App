@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stivy/views/settings/feed_back_page.dart';
+import 'package:stivy/views/settings/privacity_page.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -33,69 +35,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Configurações"),
-        backgroundColor: Colors.blueAccent,
-        elevation: 0,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // Configurações de Notificações
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: ListTile(
-                leading: Icon(Icons.notifications, color: Colors.blueAccent),
-                title: Text("Notificações"),
-                trailing: Switch(
-                  value: _notificationsEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _notificationsEnabled = value;
-                    });
-                  },
-                  activeColor: Colors.blueAccent,
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // Configurações de Tema
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: ListTile(
-                leading: Icon(Icons.brightness_6, color: Colors.blueAccent),
-                title: Text("Modo Escuro"),
-                trailing: Switch(
-                  value: _darkModeEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _darkModeEnabled = value;
-                      _saveThemePreference(value);
-                      // Aplicar o tema
-                      if (value) {
-                        // Tema escuro
-                        // Implemente a lógica para mudar o tema aqui
-                      } else {
-                        // Tema claro
-                        // Implemente a lógica para mudar o tema aqui
-                      }
-                    });
-                  },
-                  activeColor: Colors.blueAccent,
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // Configurações de Privacidade
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -105,9 +48,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: Icon(Icons.security, color: Colors.blueAccent),
                 title: Text("Privacidade e Segurança"),
                 onTap: () {
-                  // Navegar para a tela de privacidade
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Abrindo configurações de privacidade...")),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PrivacyAndSecurityScreen(),
+                    ),
                   );
                 },
               ),
@@ -145,9 +90,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: Icon(Icons.feedback, color: Colors.blueAccent),
                 title: Text("Enviar Feedback"),
                 onTap: () {
-                  // Lógica para enviar feedback
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Redirecionando para o formulário de feedback...")),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FeedbackScreen(),
+                    ),
                   );
                 },
               ),
@@ -183,10 +130,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               // Lógica para logout
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Você saiu da sua conta.")),
+                                SnackBar(
+                                    content: Text("Você saiu da sua conta.")),
                               );
                             },
-                            child: Text("Sair", style: TextStyle(color: Colors.red)),
+                            child: Text("Sair",
+                                style: TextStyle(color: Colors.red)),
                           ),
                         ],
                       );

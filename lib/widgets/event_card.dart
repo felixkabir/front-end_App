@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:stivy/models/post/post.dart';
+import 'package:stivy/models/event/event_model.dart';
 import 'package:stivy/views/profile/profile.screen.dart' as profile;
 import 'package:stivy/Api/ApiConfig.dart';
 
-class PostCard extends StatelessWidget {
-  final Post post;
+class EventCard extends StatelessWidget {
+  final Event event;
 
-  const PostCard({required this.post});
+  const EventCard({required this.event});
 
   @override
   Widget build(BuildContext context) {
-    void _showOptionsMenu(BuildContext context, Post post) {
+    void _showOptionsMenu(BuildContext context, Event event) {
       showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
@@ -19,14 +19,14 @@ class PostCard extends StatelessWidget {
               children: <Widget>[
                 ListTile(
                   leading: Icon(Icons.edit),
-                  title: Text('Edit'),
+                  title: Text('Editar'),
                   onTap: () {
                     Navigator.pop(context);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.delete),
-                  title: Text('Delete'),
+                  title: Text('Excluir'),
                   onTap: () {
                     Navigator.pop(context);
                   },
@@ -59,14 +59,14 @@ class PostCard extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => profile.ProfileScreen(id: post.userId),
+                        builder: (context) => profile.ProfileScreen(id: event.userId),
                       ),
                     );
                   },
                   child: CircleAvatar(
                     radius: 24,
                     backgroundImage: NetworkImage(
-                      '${ApiConfig.apiBaseUrl}/files/${post.user.fileKey}',
+                      '${ApiConfig.apiBaseUrl}/files/${event.user.fileKey}',
                     ),
                   ),
                 ),
@@ -78,7 +78,7 @@ class PostCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            post.user.username,
+                            event.user.username,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -95,7 +95,7 @@ class PostCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              post.type,
+                              'Evento',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[700],
@@ -106,7 +106,7 @@ class PostCard extends StatelessWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        post.createdAt.toString(),
+                        'Criado em: ${event.createdAt.toString()}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 14,
@@ -118,34 +118,37 @@ class PostCard extends StatelessWidget {
                 IconButton(
                   icon: Icon(Icons.more_vert),
                   onPressed: () {
-                    _showOptionsMenu(context, post);
+                    _showOptionsMenu(context, event);
                   },
                 ),
               ],
             ),
           ),
 
-          if (post.content != null)
+          if (event.name != null)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                post.content!,
+                'Nome do Evento: ${event.name}',
                 style: TextStyle(fontSize: 16),
               ),
             ),
 
-          if (post.fileEntities.isNotEmpty)
+          if (event.location != null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Local: ${event.location}',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+
+          if (event.fileKey != null)
             Container(
-              height: 300,
-              child: PageView.builder(
-                itemCount: post.fileEntities.length,
-                itemBuilder: (context, index) {
-                  final file = post.fileEntities[index];
-                  return Image.network(
-                    '${ApiConfig.apiBaseUrl}/files/${file.fileKey}',
-                    fit: BoxFit.cover,
-                  );
-                },
+              height: 200,
+              child: Image.network(
+                '${ApiConfig.apiBaseUrl}/files/${event.fileKey}',
+                fit: BoxFit.cover,
               ),
             ),
 

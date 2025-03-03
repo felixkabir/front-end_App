@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/providers/user_provider.dart';
-import 'package:stivy/services/api_service.dart';
 import 'package:stivy/views/auth/login/login_screen.dart';
 
 class CustomAppHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -23,9 +23,7 @@ class CustomAppHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final isLoggedIn = userProvider.isLoggedIn;
-    final userPhotoUrl = userProvider.user?.fileUrl;
     final user = userProvider.user;
-
 
     return Stack(
       children: [
@@ -56,11 +54,18 @@ class CustomAppHeader extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.only(right: 16),
               child: GestureDetector(
                 onTap: () {
-                  // Adicione ação ao clicar na foto do usuário
+                  if (isLoggedIn && user != null) {
+                    // Navegue para o perfil do usuário
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                    );
+                  }
                 },
                 child: CircleAvatar(
-                  backgroundImage: isLoggedIn && user?.fileUrl != null
-                      ? NetworkImage('${ApiService.apiBaseUrl}/${user?.fileUrl}' ?? 'https://icons.veryicon.com/png/o/internet--web/prejudice/user-128.png')
+                  backgroundImage: isLoggedIn && user?.fileKey != null
+                      ? NetworkImage('${ApiConfig.apiBaseUrl}/files/${user?.fileKey}')
                       : AssetImage('https://icons.veryicon.com/png/o/internet--web/prejudice/user-128.png') as ImageProvider,
                   radius: 18,
                 ),

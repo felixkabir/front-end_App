@@ -4,12 +4,13 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/gestures.dart';
+import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/views/auth/Login/login_screen.dart';
 import 'package:stivy/views/home/home_screen.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:stivy/services/api_service.dart';
 import 'package:stivy/controllers/storage_controller.dart';
 import 'package:http/http.dart' as http;
+import 'package:stivy/views/home/mainScreen.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -46,26 +47,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
     }
   }
+Future<void> _registerUser() async {
+  if (_usernameController.text.isEmpty ||
+      _emailController.text.isEmpty ||
+      _passwordController.text.isEmpty ||
+      _confirmPasswordController.text.isEmpty ||
+      _selectedRole == null ||
+      _imageFile == null) {
+    Get.snackbar('Erro', 'Por favor, preencha todos os campos e selecione uma imagem.');
+    return;
+  }
 
-  Future<void> _registerUser() async {
-    if (_usernameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _confirmPasswordController.text.isEmpty ||
-        _selectedRole == null ||
-        _imageFile == null) {
-      Get.snackbar('Erro', 'Por favor, preencha todos os campos e selecione uma imagem.');
-      return;
-    }
+  if (_passwordController.text != _confirmPasswordController.text) {
+    Get.snackbar('Erro', 'As senhas não coincidem.');
+    return;
+  }
 
-    if (_passwordController.text != _confirmPasswordController.text) {
-      Get.snackbar('Erro', 'As senhas não coincidem.');
-      return;
-    }
-
+  try {
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('${ApiService.apiBaseUrl}/users/create'),
+      Uri.parse('${ApiConfig.apiBaseUrl}/users/create'),
     );
 
     request.fields['username'] = _usernameController.text;
@@ -78,20 +79,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     var response = await request.send();
 
-      var responseData = await response.stream.bytesToString();
-
-      var responseMap = jsonDecode(responseData) as Map<String, dynamic>; 
-      
-      await _storageData.addStorage("auth", responseMap);
-      print('📦 Dados salvos no storage $responseMap');
-
     if (response.statusCode == 200) {
+      var responseData = await response.stream.bytesToString();
+      var responseMap = jsonDecode(responseData) as Map<String, dynamic>;
+
+      final _userData = {
+        ...responseMap, // Copia todos os dados da resposta
+        'user': responseMap['user'], // Dados do usuário
+        'access_token': responseMap['token'], // Token de acesso
+      };
+
+      print('💾 Dados do usuário atualizados: $_userData');
+
+      // Armazena os dados no StorageController
+      await _storageData.addStorage("auth", _userData);
+
       Get.snackbar('Sucesso', 'Usuário cadastrado com sucesso!');
-      Get.to(() => HomeScreen());
+      Get.to(() => MainScreen());
     } else {
-      Get.snackbar('Erro', 'Falha ao cadastrar usuário.');
+      var errorData = await response.stream.bytesToString();
+      var errorMap = jsonDecode(errorData) as Map<String, dynamic>;
+      final errorMessage = errorMap['message'] ?? 'Falha ao cadastrar usuário.';
+      Get.snackbar('Erro', errorMessage);
     }
+  } catch (e) {
+    // Erro de conexão ou servidor
+    print('Erro durante o cadastro: $e');
+    Get.snackbar(
+      'Erro',
+      'Não foi possível conectar ao servidor',
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

@@ -1,30 +1,56 @@
-class AgencyModel {
+class Agency {
   final String id;
+  final DateTime createdAt;
   final String name;
-  final String imageUrl;
-  final String location;
+  final String fileUrl;
+  final String fileKey;
+  final String contact;
+  final String userId;
+  final List<dynamic> models;
+  final String? location;
   final double? rating;
-  final int modelsCount;
-  
-  
+  final int? modelsCount;
 
-  AgencyModel({
+
+  Agency({
     required this.id,
+    required this.createdAt,
     required this.name,
-    required this.imageUrl,
-    required this.location,
+    required this.fileUrl,
+    required this.fileKey,
+    required this.contact,
+    required this.userId,
+    required this.models,
+    this.location,
     this.rating,
-    required this.modelsCount,
+    this.modelsCount,
   });
-  
-   factory AgencyModel.fromJson(Map<String, dynamic> json) {
-    return AgencyModel(
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'created_at': createdAt,
+      'name': name,
+      'file_url': fileUrl,
+      'file_key': fileKey,
+      'contact': contact,
+      'userId': userId,
+    };
+  }
+
+  factory Agency.fromJson(Map<String, dynamic> json) {
+    return Agency(
       id: json['id'],
+      createdAt: DateTime.parse(json['created_at']),
       name: json['name'],
-      imageUrl: json['image_url'],
+      fileUrl: json['file_url'],
+      fileKey: json['file_key'],
+      contact: json['contact'],
+      userId: json['userId'],
+      models: json['models'],
       location: json['location'],
-      rating: json['rating'] == null? null : double.parse(json['rating']),
-      modelsCount: json['models_count'],
+      rating: json['rating'] == null ? null : double.parse(json['rating']),
+      modelsCount: json['models_count'] == null? null : int.parse(json['models_count']),
     );
   }
 }

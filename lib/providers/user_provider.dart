@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/controllers/storage_controller.dart';
-import 'package:stivy/models/users/user_model.dart';
+import 'package:stivy/models/user/user_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class UserProvider with ChangeNotifier {
   User? _user;
@@ -8,18 +11,34 @@ class UserProvider with ChangeNotifier {
   final StorageController _storageController = StorageController();
 
   User? get user => _user;
+  bool _isLoggedIn = false;
   bool get isLoggedIn => _user != null;
+  bool _isGuestMode = false;
+
   bool get hasSeenOnboarding => _hasSeenOnboarding;
+  bool get isGuestMode => _isGuestMode;
 
   UserProvider() {
-    _loadUserFromStorage();
+    loadUserFromStorage();
     _loadOnboardingStatus();
   }
 
-  Future<void> _loadUserFromStorage() async {
-    final userData = await _storageController.getStorage('auth');
-    if (userData != null && userData is Map<String, dynamic>) {
-      _user = User.fromJson(userData); 
+
+  void setGuestMode(bool isGuest) {
+    _isGuestMode = isGuest;
+    notifyListeners();
+  }
+
+  Future<void> loadUserFromStorage() async {
+    final authData = await _storageController.getStorage("auth");
+
+    if (authData != null && authData['user'] != null && authData['access_token'] != null) {
+      _user = authData['user'];
+      _isLoggedIn = true;
+      notifyListeners();
+    } else {
+      _user = null;
+      _isLoggedIn = false;
       notifyListeners();
     }
   }
@@ -38,15 +57,41 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setUser(Map<String, dynamic> userData) {
+    _user = User.fromJson(userData);
+    _isLoggedIn = true;
+    notifyListeners();
+  }
+
   Future<void> setHasSeenOnboarding(bool value) async {
     _hasSeenOnboarding = value;
     await _storageController.addStorage('hasSeenOnboarding', value);
     notifyListeners();
   }
 
-  Future<void> logout() async {
-    _user = null;
-    await _storageController.remove('auth'); // Remove os dados do usuário
-    notifyListeners();
+
+Future<void> logout(String userEmail) async {
+  if (_user != null) {
+    try {
+      print("$_user");
+      print("$userEmail");
+      final body = jsonEncode({'email': userEmail});
+      final response = await http.put(
+        Uri.parse('${ApiConfig.apiBaseUrl}/auth/user/logout'),
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        _user = null;
+        await _storageController.remove('auth');
+        notifyListeners();
+      } else {
+        throw Exception('Failed to log out: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error during logout: $e');
+    }
+  }
   }
 }
