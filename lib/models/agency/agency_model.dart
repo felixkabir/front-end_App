@@ -1,4 +1,5 @@
 import 'package:stivy/models/user/user_model.dart';
+
 class Agency {
   final String id;
   final DateTime createdAt;
@@ -9,10 +10,10 @@ class Agency {
   final String userId;
   final List<User> models;
   final List<dynamic> Post;
-  final User creator; // Alterado para User (não é uma lista)
-  final String? location;
-  final double? rating;
-  final int? modelsCount;
+  final User creator;
+  final String location;
+  final double rating;
+  final int modelsCount;
 
   Agency({
     required this.id,
@@ -23,11 +24,11 @@ class Agency {
     required this.contact,
     required this.userId,
     required this.models,
-    required this.creator, // Agora é um único User
+    required this.creator,
     required this.Post,
-    this.location,
-    this.rating,
-    this.modelsCount,
+    this.location = "", // Valor padrão para location
+    this.rating = 0.0, // Valor padrão para rating
+    this.modelsCount = 0, // Valor padrão para modelsCount
   });
 
   Map<String, dynamic> toJson() {
@@ -50,19 +51,40 @@ class Agency {
 
   factory Agency.fromJson(Map<String, dynamic> json) {
     return Agency(
-      id: json['id'],
-      createdAt: DateTime.parse(json['created_at']),
-      name: json['name'],
-      fileUrl: json['file_url'],
-      fileKey: json['file_key'],
-      contact: json['contact'],
-      userId: json['userId'],
-      models: (json['models'] as List).map((model) => User.fromJson(model)).toList(),
-      creator: User.fromJson(json['creator']), // Agora é um único objeto User
-      Post: json['Post'],
-      location: json['location'],
-      rating: json['rating'] == null ? null : double.parse(json['rating']),
-      modelsCount: json['models_count'] == null ? null : int.parse(json['models_count']),
+      id: json['id'] ?? "", // Valor padrão para id
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(), // Valor padrão para createdAt
+      name: json['name'] ?? "", // Valor padrão para name
+      fileUrl: json['file_url'] ?? "", // Valor padrão para fileUrl
+      fileKey: json['file_key'] ?? "", // Valor padrão para fileKey
+      contact: json['contact'] ?? "", // Valor padrão para contact
+      userId: json['userId'] ?? "", // Valor padrão para userId
+      models: json['models'] != null
+          ? (json['models'] as List)
+              .map((model) => User.fromJson(model))
+              .toList()
+          : [], // Lista vazia se models for null
+      creator: json['creator'] != null
+          ? User.fromJson(json['creator'])
+          : User(
+              id: "",
+              createdAt: DateTime.now(),
+              username: "",
+              email: "",
+              password: "",
+              onlineStatus: false,
+              agencies: [],
+              interests: [],
+            ), // Valor padrão para creator
+      Post: json['Post'] ?? [], // Lista vazia se Post for null
+      location: json['location'] ?? "", // Valor padrão para location
+      rating: json['rating'] != null
+          ? double.parse(json['rating'].toString())
+          : 0.0, // Valor padrão para rating
+      modelsCount: json['models_count'] != null
+          ? int.parse(json['models_count'].toString())
+          : 0, // Valor padrão para modelsCount
     );
   }
 }

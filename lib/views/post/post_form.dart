@@ -12,14 +12,14 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-final TextEditingController _contentController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
   final TextEditingController _eventNameController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController(); // Novo campo para localização
   final PostController _postController = PostController();
   final EventController _eventController = EventController();
   List<File> _selectedFiles = [];
   bool _isPostingAsAgency = false;
   String? _selectedAgencyId;
-  String? _location;
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isEvent = false;
@@ -56,11 +56,22 @@ final TextEditingController _contentController = TextEditingController();
   Future<void> _submitPost() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final userId = userProvider.user?.id;
-    final entityType = _isPostingAsAgency ? 'AGENCY' : 'MODEL';
+    final entityType = _isPostingAsAgency ? 'AGENCY' : 'USER'; // Alterado para 'USER'
     final entityId = _isPostingAsAgency ? _selectedAgencyId! : userId!;
 
+    if (_endDate!.isBefore(_startDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('A data de término não pode ser anterior à data de início.')),
+      );
+      return;
+    }
+
     if (_isEvent) {
-      if (_eventNameController.text.isEmpty || _startDate == null || _endDate == null || _selectedFiles.isEmpty) {
+      if (_eventNameController.text.isEmpty || 
+          _startDate == null || 
+          _endDate == null || 
+          _selectedFiles.isEmpty || 
+          _locationController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Por favor, preencha todos os campos do evento.')),
         );
@@ -74,12 +85,12 @@ final TextEditingController _contentController = TextEditingController();
         endDate: _endDate!,
         entityId: entityId,
         entityType: entityType,
-        location: _location!,
+        location: _locationController.text,
       );
     } else {
-      if (_contentController.text.isEmpty || _selectedFiles.isEmpty) {
+      if (_contentController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Por favor, insira o conteúdo da postagem e selecione imagens.')),
+          SnackBar(content: Text('Por favor, insira o conteúdo da postagem.')),
         );
         return;
       }
@@ -177,12 +188,24 @@ final TextEditingController _contentController = TextEditingController();
 
             // Campo de conteúdo ou nome do evento
             if (_isEvent)
-              TextField(
-                controller: _eventNameController,
-                decoration: InputDecoration(
-                  labelText: 'Nome do Evento',
-                  border: OutlineInputBorder(),
-                ),
+              Column(
+                children: [
+                  TextField(
+                    controller: _eventNameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nome do Evento',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _locationController,
+                    decoration: InputDecoration(
+                      labelText: 'Localização',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
               )
             else
               TextField(

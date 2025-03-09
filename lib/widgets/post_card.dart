@@ -59,14 +59,14 @@ class PostCard extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => profile.ProfileScreen(id: post.userId),
+                        builder: (context) => profile.ProfileScreen(id: post.user?.id?.toString() ?? '0'),
                       ),
                     );
                   },
                   child: CircleAvatar(
                     radius: 24,
                     backgroundImage: NetworkImage(
-                      '${ApiConfig.apiBaseUrl}/files/${post.user.fileKey}',
+                      '${ApiConfig.apiBaseUrl}/files/${post.user?.fileKey}',
                     ),
                   ),
                 ),
@@ -78,7 +78,7 @@ class PostCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            post.user.username,
+                            post.user?.username ?? '',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,

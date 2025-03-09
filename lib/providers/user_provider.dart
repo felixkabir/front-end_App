@@ -32,11 +32,6 @@ class UserProvider with ChangeNotifier {
 
 Future<void> refreshUser() async {
   try {
-    // Assuming you have a method to fetch current user data
-    // final userData = await _userService.fetchCurrentUser();
-    
-    // Update the user in the provider
-    // _user = userData;
     notifyListeners();
   } catch (e) {
     print('Error refreshing user data: $e');

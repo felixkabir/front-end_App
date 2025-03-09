@@ -27,6 +27,7 @@ class EventController {
       entityId: entityId,
       entityType: entityType,
       location: location,
+      
     );
   }  
 }

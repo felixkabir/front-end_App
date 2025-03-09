@@ -9,14 +9,9 @@ class PostService {
 
   Future<List<Post>> fetchPosts() async {
     final url = Uri.parse(baseUrl);
-    print('Fetching posts from: $url');
 
     try {
       final response = await http.get(url).timeout(Duration(seconds: 30));
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         return data.map((post) => Post.fromJson(post)).toList();
@@ -83,11 +78,6 @@ class PostService {
         );
       }
 
-      // Exibe os dados que estão sendo enviados
-      print('Dados enviados para a API:');
-      print('URL: ${request.url}');
-      print('Campos: ${request.fields}');
-      print('Arquivos:');
       for (var file in request.files) {
         print(' - ${file.field}: ${file.filename}');
       }

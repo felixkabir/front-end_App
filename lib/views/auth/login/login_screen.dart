@@ -88,9 +88,12 @@ Future<void> _login() async {
 
         final userData = responseData['user'];
 
-        // Garantir que 'agencies' seja uma lista, mesmo que seja null
         if (userData['agencies'] == null) {
-          userData['agencies'] = []; // Define como uma lista vazia se for null
+          userData['agencies'] = [];
+        }
+
+        if (userData['interests'] == null) {
+          userData['interests'] = [];
         }
 
         final _userData = {
@@ -99,6 +102,7 @@ Future<void> _login() async {
           'access_token': responseData['token'], // Token de acesso
         };
 
+        print("Passou aqui : ${responseData}");
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.setUser(userData); // Atualiza o estado do usuário
         await _storageStorage.addStorage("auth", _userData);

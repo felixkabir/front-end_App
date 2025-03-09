@@ -1,25 +1,28 @@
 import 'package:stivy/models/user/user_model.dart';
+
 class Post {
   final String id;
   final DateTime createdAt;
   final String? content;
+  final bool isWorkModel;
   final String type;
-  final String userId;
+  final String? userId;
   final String? agencyId;
   final String? modelId;
   final List<FileEntity> fileEntities;
-  final User user;
+  final User? user;
 
   Post({
     required this.id,
     required this.createdAt,
     this.content,
+    required this.isWorkModel,
     required this.type,
-    required this.userId,
+    this.userId,
     this.agencyId,
     this.modelId,
     required this.fileEntities,
-    required this.user,
+    this.user,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -27,6 +30,7 @@ class Post {
       id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
       content: json['content'],
+      isWorkModel: json['is_work_model'] ?? false, // Valor padrão caso seja null
       type: json['type'],
       userId: json['userId'],
       agencyId: json['agencyId'],
@@ -34,7 +38,7 @@ class Post {
       fileEntities: (json['file_entity'] as List)
           .map((file) => FileEntity.fromJson(file))
           .toList(),
-      user: User.fromJson(json['user']),
+      user: json['user'] != null ? User.fromJson(json['user']) : null, // Tratamento para user null
     );
   }
 }

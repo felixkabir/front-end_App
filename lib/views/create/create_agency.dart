@@ -141,9 +141,8 @@ class _CreateAgencyScreenState extends State<CreateAgencyScreen>
             models: [],
             Post: [],
             creator: User(
-              // Agora é um único User
               id: 'user-id', // Substitua pelo ID do usuário criador
-              createdAt: DateTime.now().toIso8601String(),
+              createdAt: DateTime.now(),
               username: 'username', // Substitua pelo nome de usuário real
               email: 'email@example.com', // Substitua pelo email real
               password: 'password', // Substitua pela senha real

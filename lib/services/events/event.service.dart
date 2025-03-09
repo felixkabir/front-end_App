@@ -10,10 +10,6 @@ class EventService {
   Future<List<Event>> fetchEvents() async {
     try {
       final response = await http.get(Uri.parse(baseUrl)).timeout(Duration(seconds: 30));
-      print('URL da requisição de eventos: $baseUrl');
-      print('Status code: ${response.statusCode}');
-      print('Resposta: ${response.body}');
-
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         return data.map((event) => Event.fromJson(event)).toList();
@@ -26,7 +22,6 @@ class EventService {
     }
   }
 
-  
   Future<void> createEvent({
     required String name,
     required String location,
@@ -39,15 +34,18 @@ class EventService {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/create/$entityId?type=$entityType'),
+        Uri.parse('${ApiConfig.apiBaseUrl}/events/create/$entityId'),
       );
 
-      // Adiciona os campos do evento
+      String formatDate(DateTime date) {
+        return "${date.toIso8601String()}Z";
+      }
       request.fields['name'] = name;
-      request.fields['start_date'] = startDate.toIso8601String();
-      request.fields['end_date'] = endDate.toIso8601String();
+      request.fields['location'] = location;
+      request.fields['entity_type'] = entityType; // Adicionando entityType se for necessário
+      request.fields['start_date'] = formatDate(startDate);
+      request.fields['end_date'] = formatDate(endDate);
 
-      // Adiciona o arquivo
       request.files.add(
         await http.MultipartFile.fromPath(
           'file',
@@ -56,13 +54,14 @@ class EventService {
       );
 
       var response = await request.send().timeout(Duration(seconds: 30));
-
+      var responseBody = await response.stream.bytesToString();
       if (response.statusCode == 200) {
         print('Evento criado com sucesso!');
       } else {
-        throw Exception('Falha ao criar evento: ${response.statusCode}');
+        throw Exception('Falha ao criar evento: ${response.statusCode}, $responseBody');
       }
     } catch (e) {
+      print('Erro ao criar evento: $e');
       throw Exception('Erro ao criar evento: $e');
     }
   }
