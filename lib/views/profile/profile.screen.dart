@@ -208,7 +208,7 @@ class ProfilePostCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostDetailsScreen(post: post),
+            builder: (context) => PostDetailsScreen(post: post, postId: post.id, userId: "",),
           ),
         );
       },

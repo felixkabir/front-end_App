@@ -5,8 +5,10 @@ import 'package:stivy/views/profile/profile.screen.dart';
 
 class PostDetailsScreen extends StatelessWidget {
   final Post post;
+  final String postId;
+  final String userId;
 
-  const PostDetailsScreen({required this.post});
+  const PostDetailsScreen({required this.post, required this.postId, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +34,11 @@ class PostDetailsScreen extends StatelessWidget {
             ListTile(
               leading: CircleAvatar(
                 backgroundImage: NetworkImage(
-                  '${ApiConfig.apiBaseUrl}/files/${post.agencyId}',
+                  '${ApiConfig.apiBaseUrl}/files/${post.user!.fileKey!}',
                 ),
               ),
-              title: Text(post.type),
-              subtitle: Text(post.type),
+              title: Text(post.user!.username!),
+              subtitle: Text(post.user!.email!),
             ),
             // Post Content
             if (post.content != null)
@@ -59,11 +61,11 @@ class PostDetailsScreen extends StatelessWidget {
                   },
                 ),
               ),
-            // Event Info
+            // post Info
             if (post.type != null)
               Padding(
                 padding: EdgeInsets.all(16),
-                child: Text('Evento: ${post.createdAt}'),
+                child: Text('Data: ${post.createdAt}'),
               ),
             // Likes Section
             Padding(
@@ -72,7 +74,7 @@ class PostDetailsScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.favorite, color: Colors.red),
                   SizedBox(width: 8),
-                  Text('${post.agencyId} curtidas'),
+                  Text('${post.fileEntities.length} curtidas'),
                 ],
               ),
             ),

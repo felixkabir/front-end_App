@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stivy/models/post/post.dart';
+import 'package:stivy/views/home/post_details_screen.dart';
 import 'package:stivy/views/profile/profile.screen.dart' as profile;
 import 'package:stivy/Api/ApiConfig.dart';
 
@@ -7,6 +8,43 @@ class PostCard extends StatelessWidget {
   final Post post;
 
   const PostCard({required this.post});
+
+  // Função para formatar a data em um formato amigável
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Data não disponível';
+
+    final now = DateTime.now();
+    final difference = date.difference(now); // Calcula a diferença
+
+    // Se a data já passou
+    if (difference.isNegative) {
+      return 'Post já ocorreu';
+    }
+
+    // Calcula anos, meses, dias, horas, minutos e segundos
+    final years = difference.inDays ~/ 365;
+    final months = (difference.inDays % 365) ~/ 30;
+    final days = difference.inDays % 30;
+    final hours = difference.inHours % 24;
+    final minutes = difference.inMinutes % 60;
+    final seconds = difference.inSeconds % 60;
+
+    // Constrói a string de resultado
+    String result = '';
+    if (years > 0) result += '$years ano${years > 1 ? 's' : ''}, ';
+    if (months > 0) result += '$months mês${months > 1 ? 'es' : ''}, ';
+    if (days > 0) result += '$days dia${days > 1 ? 's' : ''}, ';
+    if (hours > 0) result += '$hours hora${hours > 1 ? 's' : ''}, ';
+    if (minutes > 0) result += '$minutes minuto${minutes > 1 ? 's' : ''}, ';
+    if (seconds > 0) result += '$seconds segundo${seconds > 1 ? 's' : ''}, ';
+
+    // Remove a vírgula final
+    if (result.endsWith(', ')) {
+      result = result.substring(0, result.length - 2);
+    }
+
+    return result.isEmpty ? 'Post ocorre agora' : 'Faltam $result';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +57,14 @@ class PostCard extends StatelessWidget {
               children: <Widget>[
                 ListTile(
                   leading: Icon(Icons.edit),
-                  title: Text('Edit'),
+                  title: Text('Editar'),
                   onTap: () {
                     Navigator.pop(context);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.delete),
-                  title: Text('Delete'),
+                  title: Text('Excluir'),
                   onTap: () {
                     Navigator.pop(context);
                   },
@@ -38,15 +76,19 @@ class PostCard extends StatelessWidget {
       );
     }
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey[300]!, width: 4),
-          bottom: BorderSide(color: Colors.grey[300]!, width: 4),
-        ),
-      ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PostDetailsScreen(
+              post: post,
+              postId: post.id,
+              userId: post.userId!, // Passar o ID do usuário
+            ),
+          ),
+        );
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -106,7 +148,7 @@ class PostCard extends StatelessWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        post.createdAt.toString(),
+                        '${post.createdAt}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 14,
