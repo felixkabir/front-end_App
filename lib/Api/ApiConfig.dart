@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:stivy/models/agency/agency_model.dart';
-
 class ApiConfig {
-  static const String apiBaseUrl = 'https://stivy-backend-yyxt.onrender.com'; 
+  // static const String apiBaseUrl = 'http://192.168.1.251:1111'; 
+  static const String apiBaseUrl = 'http://192.168.96.140:1111';  
+  // static const String apiBaseUrl = 'https://stivy-backend-yyxt.onrender.com'; 
 }

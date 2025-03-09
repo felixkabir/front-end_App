@@ -29,6 +29,19 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+
+Future<void> refreshUser() async {
+  try {
+    // Assuming you have a method to fetch current user data
+    // final userData = await _userService.fetchCurrentUser();
+    
+    // Update the user in the provider
+    // _user = userData;
+    notifyListeners();
+  } catch (e) {
+    print('Error refreshing user data: $e');
+  }
+}
   Future<void> loadUserFromStorage() async {
     final authData = await _storageController.getStorage("auth");
 
@@ -80,7 +93,7 @@ Future<void> logout(String userEmail) async {
         Uri.parse('${ApiConfig.apiBaseUrl}/auth/user/logout'),
         headers: {'Content-Type': 'application/json'},
         body: body,
-      );
+      ).timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         _user = null;

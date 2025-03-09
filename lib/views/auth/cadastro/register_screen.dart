@@ -4,13 +4,13 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/gestures.dart';
+import 'package:provider/provider.dart';
 import 'package:stivy/Api/ApiConfig.dart';
+import 'package:stivy/providers/interest_provider.dart';
 import 'package:stivy/views/auth/Login/login_screen.dart';
-import 'package:stivy/views/home/home_screen.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:stivy/controllers/storage_controller.dart';
 import 'package:http/http.dart' as http;
-import 'package:stivy/views/home/mainScreen.dart';
+import 'package:stivy/models/interest/interests_model.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -21,101 +21,97 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-  String? _selectedRole;
   File? _imageFile;
+  // final InterestController _interestController = Get.put(InterestController());
 
-  final List<Map<String, String>> roles = [
-    {'label': 'Amante de Moda', 'value': 'fashion_lover'},
-    {'label': 'Modelo Freelancer', 'value': 'model'},
-    {'label': 'Fotografo Freelancer', 'value': 'photographer'},
-    {'label': 'Designer de Moda', 'value': 'designer'},
-    {'label': 'Agencia', 'value': 'agency'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Busca os interesses ao inicializar a tela
+    Provider.of<InterestProvider>(context, listen: false).fetchInterests();
+  }
 
   Map<String, dynamic>? _userData;
   Map<String, dynamic>? get userData => _userData;
-  final StorageController _storageData = StorageController();
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
       });
     }
   }
-Future<void> _registerUser() async {
-  if (_usernameController.text.isEmpty ||
-      _emailController.text.isEmpty ||
-      _passwordController.text.isEmpty ||
-      _confirmPasswordController.text.isEmpty ||
-      _selectedRole == null ||
-      _imageFile == null) {
-    Get.snackbar('Erro', 'Por favor, preencha todos os campos e selecione uma imagem.');
-    return;
-  }
 
-  if (_passwordController.text != _confirmPasswordController.text) {
-    Get.snackbar('Erro', 'As senhas não coincidem.');
-    return;
-  }
+  Future<void> _registerUser() async {
+    final interestProvider =
+        Provider.of<InterestProvider>(context, listen: false);
 
-  try {
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConfig.apiBaseUrl}/users/create'),
-    );
-
-    request.fields['username'] = _usernameController.text;
-    request.fields['email'] = _emailController.text;
-    request.fields['password'] = _passwordController.text;
-    request.fields['role'] = _selectedRole!;
-
-    var file = await http.MultipartFile.fromPath('file', _imageFile!.path);
-    request.files.add(file);
-
-    var response = await request.send();
-
-    if (response.statusCode == 200) {
-      var responseData = await response.stream.bytesToString();
-      var responseMap = jsonDecode(responseData) as Map<String, dynamic>;
-
-      final _userData = {
-        ...responseMap, // Copia todos os dados da resposta
-        'user': responseMap['user'], // Dados do usuário
-        'access_token': responseMap['token'], // Token de acesso
-      };
-
-      print('💾 Dados do usuário atualizados: $_userData');
-
-      // Armazena os dados no StorageController
-      await _storageData.addStorage("auth", _userData);
-
-      Get.snackbar('Sucesso', 'Usuário cadastrado com sucesso!');
-      Get.to(() => MainScreen());
-    } else {
-      var errorData = await response.stream.bytesToString();
-      var errorMap = jsonDecode(errorData) as Map<String, dynamic>;
-      final errorMessage = errorMap['message'] ?? 'Falha ao cadastrar usuário.';
-      Get.snackbar('Erro', errorMessage);
+    if (_usernameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty ||
+        interestProvider.selectedInterest == null ||
+        _imageFile == null) {
+      Get.snackbar('Erro',
+          'Por favor, preencha todos os campos e selecione uma imagem.');
+      return;
     }
-  } catch (e) {
-    // Erro de conexão ou servidor
-    print('Erro durante o cadastro: $e');
-    Get.snackbar(
-      'Erro',
-      'Não foi possível conectar ao servidor',
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      Get.snackbar('Erro', 'As senhas não coincidem.');
+      return;
+    }
+
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConfig.apiBaseUrl}/users/create'),
+      );
+
+      request.fields['username'] = _usernameController.text;
+      request.fields['email'] = _emailController.text;
+      request.fields['password'] = _passwordController.text;
+      request.fields['interest_types'] =
+          jsonEncode([interestProvider.selectedInterest!.interestType]);
+
+      var file = await http.MultipartFile.fromPath('file', _imageFile!.path);
+      request.files.add(file);
+
+      var response = await request.send().timeout(Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        await response.stream.bytesToString();
+        Get.snackbar('Sucesso', 'Usuário cadastrado com sucesso!', backgroundColor: Colors.greenAccent);
+        Get.to(() => LoginScreen());
+      } else {
+        var errorData = await response.stream.bytesToString();
+        var errorMap = jsonDecode(errorData) as Map<String, dynamic>;
+        final errorMessage =
+            errorMap['message'] ?? 'Falha ao cadastrar usuário.';
+        Get.snackbar('Erro', errorMessage);
+      }
+    } catch (e) {
+      // Erro de conexão ou servidor
+      print('Erro durante o cadastro: $e');
+      Get.snackbar(
+        'Erro',
+        'Não foi possível conectar ao servidor',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
+    final interestProvider = Provider.of<InterestProvider>(context);
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -148,7 +144,10 @@ Future<void> _registerUser() async {
                     'assets/logo.png',
                     width: 250,
                     height: 250,
-                  ).animate().fadeIn(duration: const Duration(seconds: 1)).scale(delay: const Duration(seconds: 1)),
+                  )
+                      .animate()
+                      .fadeIn(duration: const Duration(seconds: 1))
+                      .scale(delay: const Duration(seconds: 1)),
                 ),
                 SizedBox(height: 32),
                 // Welcome Text
@@ -162,37 +161,36 @@ Future<void> _registerUser() async {
                   ),
                 ),
                 SizedBox(height: 32),
-                // Username Field
                 _buildTextField(_usernameController, 'Nome Completo'),
                 SizedBox(height: 16),
-                // Email Field
                 _buildTextField(_emailController, 'Email'),
                 SizedBox(height: 16),
-                // Role Selection
-                _buildDropdown(),
+                _buildInterestDropdown(interestProvider),
                 SizedBox(height: 16),
-                // Password Field
-                _buildPasswordField(_passwordController, 'Palavra passe', _isPasswordVisible, () {
+                _buildPasswordField(
+                    _passwordController, 'Palavra passe', _isPasswordVisible,
+                    () {
                   setState(() {
                     _isPasswordVisible = !_isPasswordVisible;
                   });
                 }),
                 SizedBox(height: 16),
-                // Confirm Password Field
-                _buildPasswordField(_confirmPasswordController, 'Confirmar Palavra passe', _isConfirmPasswordVisible, () {
+                _buildPasswordField(_confirmPasswordController,
+                    'Confirmar Palavra passe', _isConfirmPasswordVisible, () {
                   setState(() {
                     _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                   });
                 }),
                 SizedBox(height: 16),
-                // Image Picker
                 Container(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: _pickImage,
                     child: Text(
-                      _imageFile == null ? 'Selecionar Imagem' : 'Imagem Selecionada',
+                      _imageFile == null
+                          ? 'Selecionar Imagem'
+                          : 'Imagem Selecionada',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -278,7 +276,8 @@ Future<void> _registerUser() async {
     );
   }
 
-  Widget _buildPasswordField(TextEditingController controller, String hint, bool isVisible, VoidCallback toggleVisibility) {
+  Widget _buildPasswordField(TextEditingController controller, String hint,
+      bool isVisible, VoidCallback toggleVisibility) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
@@ -305,32 +304,66 @@ Future<void> _registerUser() async {
     );
   }
 
-  Widget _buildDropdown() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          hint: Text('Selecione seu papel', style: TextStyle(color: Colors.white70)),
-          value: _selectedRole,
-          dropdownColor: Colors.purple.shade900,
-          items: roles.map((role) {
-            return DropdownMenuItem(
-              value: role['value'],
-              child: Text(role['label']!, style: TextStyle(color: Colors.white)),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedRole = value;
-            });
-          },
-        ),
+Widget _buildInterestDropdown(InterestProvider interestProvider) {
+  // Verifica se a lista de interesses está vazia
+  if (interestProvider.interests.isEmpty) {
+    return Center(
+      child: Text(
+        'Carregando interesses...',
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
+
+  // Remove duplicatas (se necessário)
+  final uniqueInterests = interestProvider.interests.toSet().toList();
+
+  // Verifica se o selectedInterest está na lista de interesses
+  final selectedInterest = interestProvider.selectedInterest;
+  final isValidSelectedInterest = selectedInterest != null &&
+      uniqueInterests.any((interest) => interest == selectedInterest);
+
+  return DropdownButtonFormField<Interest>(
+    value: isValidSelectedInterest ? selectedInterest : null, // Define o valor apenas se for válido
+    hint: Text(
+      'Selecione um interesse',
+      style: TextStyle(
+        color: Colors.white70, // Cor do texto do hint
+      ),
+    ),
+    items: uniqueInterests.map((Interest interest) {
+      return DropdownMenuItem(
+        value: interest,
+        child: Text(
+          interest.name,
+          style: TextStyle(
+            color: Colors.white, // Cor do texto dos itens
+          ),
+        ),
+      );
+    }).toList(),
+    onChanged: (Interest? value) {
+      interestProvider.selectInterest(value!);
+    },
+    alignment: Alignment.center, // Centraliza o texto selecionado
+    dropdownColor: Colors.purple.shade800, // Cor de fundo do menu suspenso
+    icon: Icon(
+      Icons.arrow_drop_down,
+      color: Colors.white, // Cor do ícone
+    ),
+    decoration: InputDecoration(
+      border: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.5)), // Borda sutil
+        borderRadius: BorderRadius.circular(12), // Bordas arredondadas
+      ),
+      filled: true,
+      fillColor: Colors.white.withOpacity(0.1), // Cor de fundo do dropdown
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12), // Padding interno
+    ),
+    style: TextStyle(
+      color: Colors.white, // Cor do texto selecionado
+      fontSize: 16,
+    ),
+  );
+}
 }

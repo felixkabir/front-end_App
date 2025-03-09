@@ -245,7 +245,6 @@ class CustomAppHeader extends StatelessWidget implements PreferredSizeWidget {
           ),
           title: Row(
             children: [
-              Image.asset('assets/logo.png', height: 30),
               SizedBox(width: 10),
               Text(
                 'Stivy',

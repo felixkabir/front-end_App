@@ -48,7 +48,6 @@ class StorageController extends ChangeNotifier {
   Future<void> remove(String key) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove(key);
-    print('removeu o cache com a key $key');
     notifyListeners();
   }  
 

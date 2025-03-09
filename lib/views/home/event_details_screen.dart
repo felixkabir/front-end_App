@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/models/event/event_model.dart';
 
 class EventDetailsScreen extends StatelessWidget {
@@ -19,7 +20,7 @@ class EventDetailsScreen extends StatelessWidget {
             ListTile(
               leading: CircleAvatar(
                 backgroundImage: NetworkImage(
-                  'https://stivy-backend-ec0c.onrender.com/files/${event.user.fileKey}',
+                  '${ApiConfig.apiBaseUrl}/files/${event.user.fileKey}',
                 ),
               ),
               title: Text(event.user.username),
@@ -30,7 +31,7 @@ class EventDetailsScreen extends StatelessWidget {
               child: Text('Data: ${event.startDate} - ${event.endDate}'),
             ),
             Image.network(
-              'https://stivy-backend-ec0c.onrender.com/files/${event.fileKey}',
+              '${ApiConfig.apiBaseUrl}/files/${event.fileKey}',
               fit: BoxFit.cover,
             ),
           ],

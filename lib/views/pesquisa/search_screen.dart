@@ -137,15 +137,6 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Pesquisar'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.filter_list),
-            onPressed: _openFilterBottomSheet,
-          ),
-        ],
-      ),
       body: Column(
         children: [
           // Campo de pesquisa

@@ -9,7 +9,7 @@ class EventService {
 
   Future<List<Event>> fetchEvents() async {
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      final response = await http.get(Uri.parse(baseUrl)).timeout(Duration(seconds: 30));
       print('URL da requisição de eventos: $baseUrl');
       print('Status code: ${response.statusCode}');
       print('Resposta: ${response.body}');
@@ -55,7 +55,7 @@ class EventService {
         ),
       );
 
-      var response = await request.send();
+      var response = await request.send().timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         print('Evento criado com sucesso!');

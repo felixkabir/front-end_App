@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/models/agency/agency_model.dart';
+import 'package:stivy/providers/user_provider.dart';
 import 'package:stivy/services/agency/agency_service.dart';
+import 'package:stivy/views/agencia/agency_profile.dart';
+import 'package:stivy/views/create/create_agency.dart';
 import 'package:stivy/views/profile/profile.screen.dart' as profile;
 
 class AgenciesScreen extends StatefulWidget {
@@ -14,23 +18,36 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
   final AgencyService _agencyService = AgencyService();
   late Future<List<Agency>> _agenciesFuture;
   String _searchQuery = '';
-  String? _userAgencyId = '1'; 
-  String _selectedFilter = 'Todas'; 
-  String _selectedSort = 'Nome'; 
+  String? _userAgencyId;
+  String _selectedFilter = 'Todas';
+  String _selectedSort = 'Nome';
 
   @override
   void initState() {
     super.initState();
-    _agenciesFuture = _agencyService.fetchAllAgencies();
+    _loadAgencies();
   }
 
+  // Method to load agencies that can be called whenever we need to refresh
+  void _loadAgencies() {
+    setState(() {
+      _agenciesFuture = _agencyService.fetchAllAgencies();
+    });
+  }
+
+  void _refreshAgencies() {
+    setState(() {
+      _agenciesFuture = _agencyService.fetchAllAgencies();
+    });
+  }
   Future<List<Agency>> get _filteredAgencies {
     return _agenciesFuture.then((agencies) {
       return agencies.where((agency) {
         final matchesQuery =
             agency.name.toLowerCase().contains(_searchQuery.toLowerCase());
         final matchesFilter = _selectedFilter == 'Todas' ||
-            agency.location != null && agency.location!.contains(_selectedFilter);
+            agency.location != null &&
+                agency.location!.contains(_selectedFilter);
         return matchesQuery && matchesFilter;
       }).toList();
     });
@@ -42,9 +59,12 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
         case 'Nome':
           return agencies..sort((a, b) => a.name.compareTo(b.name));
         case 'Avaliação':
-          return agencies..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
+          return agencies
+            ..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
         case 'Modelos':
-          return agencies..sort((a, b) => (b.modelsCount ?? 0).compareTo(a.modelsCount ?? 0));
+          return agencies
+            ..sort(
+                (a, b) => (b.modelsCount ?? 0).compareTo(a.modelsCount ?? 0));
         default:
           return agencies;
       }
@@ -53,28 +73,14 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final userId = userProvider.user?.id;
+    final userAgencies = userProvider.user?.agencies;
+
+    final hasAgency = userAgencies != null && userAgencies.isNotEmpty;
+    final agencyId = hasAgency ? userAgencies.first.id : null;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Agências'),
-        actions: [
-          if (_userAgencyId != null)
-            IconButton(
-              icon: Icon(Icons.person),
-              onPressed: () {
-                _agenciesFuture.then((agencies) {
-                  final userAgency = agencies.firstWhere((agency) => agency.id == _userAgencyId);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          profile.ProfileScreen(id: userAgency.id),
-                    ),
-                  );
-                });
-              },
-            ),
-        ],
-      ),
       body: Column(
         children: [
           Padding(
@@ -170,8 +176,10 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                profile.ProfileScreen(id: agency.id),
+                            builder: (context) => AgencyProfileScreen(
+                              id: agency.id,
+                              userId: userId!,
+                            ),
                           ),
                         );
                       },
@@ -188,8 +196,9 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
                                 borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(12),
                                 ),
-                                child: Image.network(
-                                  '${ApiConfig.apiBaseUrl}/files/${agency.fileKey}',
+                                child: Image(
+                                  image: NetworkImage(
+                                      '${ApiConfig.apiBaseUrl}/files/${agency.fileKey}'),
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                 ),
@@ -209,7 +218,7 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    agency.name,
+                                    agency.contact,
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey[600],
@@ -221,12 +230,16 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
                                       Icon(Icons.star,
                                           color: Colors.amber, size: 16),
                                       SizedBox(width: 4),
+                                      Text(
+                                        agency.rating?.toString() ?? '0',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
                                       SizedBox(width: 16),
                                       Icon(Icons.people,
                                           color: Colors.grey, size: 16),
                                       SizedBox(width: 4),
                                       Text(
-                                        agency.models.toString(),
+                                        agency.modelsCount?.toString() ?? '0',
                                         style: TextStyle(fontSize: 14),
                                       ),
                                     ],
@@ -247,8 +260,42 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          if (userId != null) {
+            if (hasAgency) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AgencyProfileScreen(
+                    id: agencyId!,
+                    userId: userId,
+                  ),
+                ),
+              );
+            } else {
+              // Navega para a tela de criação de agência
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateAgencyScreen(userId: userId,
+              onAgencyCreated: _refreshAgencies),
+                ),
+              ).then((result) {
+                // Refresh agencies list when returning from CreateAgencyScreen
+                if (result == true) {
+                  // If agency was created successfully
+                  _loadAgencies();
+                  // Optionally: Update user provider to reflect new agency
+                  Provider.of<UserProvider>(context, listen: false).refreshUser();
+                }
+              });
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Usuário não logado')),
+            );
+          }
         },
-        child: Icon(Icons.add),
+        child: Icon(hasAgency ? Icons.person : Icons.add), // Ícone dinâmico
       ),
     );
   }

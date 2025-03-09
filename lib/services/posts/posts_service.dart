@@ -12,7 +12,7 @@ class PostService {
     print('Fetching posts from: $url');
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url).timeout(Duration(seconds: 30));
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -30,7 +30,7 @@ class PostService {
 
   Future<Post> fetchPostById(int id) async {
     try {
-      final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/posts/$id'));
+      final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/posts/$id')).timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         Map<String, dynamic> data = json.decode(response.body);
@@ -45,7 +45,7 @@ class PostService {
 
   Future<List<Post>> fetchPostsByUserId(String id) async {
     try {
-      final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/posts/user/$id'));
+      final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/posts/user/$id')).timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
@@ -92,7 +92,7 @@ class PostService {
         print(' - ${file.field}: ${file.filename}');
       }
 
-      var response = await request.send();
+      var response = await request.send().timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         print('Post criado com sucesso!');

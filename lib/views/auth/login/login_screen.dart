@@ -63,67 +63,69 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-// Função para realizar o login
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      final email = _emailController.text;
-      final password = _passwordController.text;
+Future<void> _login() async {
+  if (_formKey.currentState!.validate()) {
+    final email = _emailController.text;
+    final password = _passwordController.text;
 
-      try {
-        final Map<String, dynamic> requestBody = {
-          'email': email,
-          'password': password,
+    try {
+      final Map<String, dynamic> requestBody = {
+        'email': email,
+        'password': password,
+      };
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.apiBaseUrl}/auth/user/login'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestBody),
+      ).timeout(Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print('Login bem-sucedido: $responseData');
+
+        final userData = responseData['user'];
+
+        // Garantir que 'agencies' seja uma lista, mesmo que seja null
+        if (userData['agencies'] == null) {
+          userData['agencies'] = []; // Define como uma lista vazia se for null
+        }
+
+        final _userData = {
+          ...responseData, // Copia todos os dados da resposta
+          'user': userData, // Dados do usuário
+          'access_token': responseData['token'], // Token de acesso
         };
 
-        final response = await http.post(
-          Uri.parse('${ApiConfig.apiBaseUrl}/auth/user/login'),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: json.encode(requestBody),
-        );
-        
-        if (response.statusCode == 200) {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.setUser(userData); // Atualiza o estado do usuário
+        await _storageStorage.addStorage("auth", _userData);
 
-          final responseData = jsonDecode(response.body);
-          print('Login bem-sucedido: $responseData');
-
-          final _userData = {
-            ...responseData, // Copia todos os dados da resposta
-            'user': responseData['user'], // Dados do usuário
-            'access_token': responseData['token'], // Token de acesso
-          };
-
-          final userProvider =
-              Provider.of<UserProvider>(context, listen: false);
-          userProvider
-              .setUser(responseData['user']); // Atualiza o estado do usuário
-          await _storageStorage.addStorage("auth", _userData);
-
-          Get.to(() => MainScreen());
-        } else {
-          final errorMessage =
-              jsonDecode(response.body)['message'] ?? 'Erro no login';
-          Get.snackbar(
-            'Erro',
-            errorMessage,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-          );
-        }
-      } catch (e) {
-        print('Erro durante o login: $e');
+        Get.to(() => MainScreen());
+      } else {
+        final errorMessage = jsonDecode(response.body)['message'] ?? 'Erro no login';
         Get.snackbar(
           'Erro',
-          'Não foi possível Fazer o Login, Tente mais tarde',
+          errorMessage,
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
       }
+    } catch (e) {
+      print('Erro durante o login: $e');
+      Get.snackbar(
+        'Erro',
+        'Não foi possível fazer o login. Tente novamente mais tarde.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
+}
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(

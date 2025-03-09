@@ -19,8 +19,8 @@ class User {
     this.fileKey,
     required this.email,
     required this.password,
-    required this.onlineStatus,
-      List<Agency>? agencies, 
+    this.onlineStatus = false, // Valor padrão para onlineStatus
+    List<Agency>? agencies,
   }) : agencies = agencies ?? [];
 
   // Converte o objeto User para um Map (JSON)
@@ -41,14 +41,14 @@ class User {
   // Cria um objeto User a partir de um Map (JSON)
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      createdAt: json['created_at'],
-      username: json['username'],
+      id: json['id'] ?? '', // Valor padrão para id
+      createdAt: json['created_at'] ?? '', // Valor padrão para createdAt
+      username: json['username'] ?? '', // Valor padrão para username
       fileUrl: json['file_url'],
       fileKey: json['file_key'],
-      email: json['email'],
-      password: json['password'],
-      onlineStatus: json['online_status'] ?? false,
+      email: json['email'] ?? '', // Valor padrão para email
+      password: json['password'] ?? '', // Valor padrão para password
+      onlineStatus: json['online_status'] ?? false, // Valor padrão para onlineStatus
       agencies: json['agencies'] != null
           ? (json['agencies'] as List)
               .map((agency) => Agency.fromJson(agency))
