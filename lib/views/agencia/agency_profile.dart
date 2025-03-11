@@ -19,7 +19,8 @@ class AgencyProfileScreen extends StatefulWidget {
 class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
   late Future<Agency> _agencyFuture;
   final AgencyService _agencyService = AgencyService();
-  bool _isOwner = false; // Variável para controlar se o usuário é o proprietário
+  bool _isOwner =
+      false; // Variável para controlar se o usuário é o proprietário
   Agency? _agency; // Variável para armazenar a agência carregada
 
   @override
@@ -58,7 +59,8 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
 
           final agency = snapshot.data!;
           _agency = agency; // Armazena a agência carregada
-          _isOwner = userProvider.user?.id == agency.creator.id; // Define se o usuário é o proprietário
+          _isOwner = userProvider.user?.id ==
+              agency.creator.id; // Define se o usuário é o proprietário
 
           return SingleChildScrollView(
             padding: EdgeInsets.all(16),
@@ -96,6 +98,28 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
     );
   }
 
+  Future<void> _addModel(Map<String, dynamic> modelData) async {
+    try {
+      final response = await _agencyService.addModel(modelData);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Modelo adicionado com sucesso!')),
+        );
+        setState(() {
+          _agencyFuture = _agencyService.fetchAgencyById(widget.id);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao adicionar o modelo')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao adicionar o modelo: $e')),
+      );
+    }
+  }
+
   // Diálogo para adicionar conteúdo (modelo, post, trabalho ou evento)
   void _showAddContentDialog(BuildContext context, Agency agency) {
     showDialog(
@@ -106,28 +130,17 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: Icon(Icons.person_add),
-                title: Text('Adicionar Modelo'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Navegar para a tela de adicionar modelo
+              ElevatedButton(
+                onPressed: () {
+                  _showAddModelDialog(context, agency);
                 },
-              ),
-              ListTile(
-                leading: Icon(Icons.post_add),
-                title: Text('Criar Post'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Navegar para a tela de criar post
-                },
+                child: Text('Adicionar Modelo'),
               ),
               ListTile(
                 leading: Icon(Icons.work),
                 title: Text('Adicionar Trabalho/Evento'),
                 onTap: () {
                   Navigator.pop(context);
-                  // Navegar para a tela de adicionar trabalho/evento
                 },
               ),
             ],
@@ -177,16 +190,9 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  // Adicionar um novo modelo
+                  _showAddModelDialog(context, agency);
                 },
                 child: Text('Adicionar Modelo'),
-              ),
-              SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {
-                  // Criar um novo post
-                },
-                child: Text('Criar Post'),
               ),
             ],
           ),
@@ -206,8 +212,7 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
           ),
         ),
         SizedBox(height: 8),
-        if (models.isEmpty)
-          Text('Nenhum modelo encontrado.'),
+        if (models.isEmpty) Text('Nenhum modelo encontrado.'),
         if (models.isNotEmpty)
           GridView.builder(
             shrinkWrap: true,
@@ -241,7 +246,7 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
                           width: double.infinity,
                         ),
                       ),
-                  ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
@@ -283,8 +288,7 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
           ),
         ),
         SizedBox(height: 8),
-        if (posts.isEmpty)
-          Text('Nenhum post encontrado.'),
+        if (posts.isEmpty) Text('Nenhum post encontrado.'),
         if (posts.isNotEmpty)
           ListView.builder(
             shrinkWrap: true,
@@ -353,8 +357,7 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
           ),
         ),
         SizedBox(height: 8),
-        if (agency.Post.isEmpty)
-          Text('Nenhum trabalho ou evento encontrado.'),
+        if (agency.Post.isEmpty) Text('Nenhum trabalho ou evento encontrado.'),
         if (agency.Post.isNotEmpty)
           ListView.builder(
             shrinkWrap: true,
@@ -374,8 +377,7 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
                   trailing: isOwner
                       ? IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                          },
+                          onPressed: () {},
                         )
                       : null,
                 ),
@@ -390,6 +392,121 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen> {
             child: Text('Adicionar Trabalho/Evento'),
           ),
       ],
+    );
+  }
+
+  void _showAddModelDialog(BuildContext context, Agency agency) {
+    final _formKey = GlobalKey<FormState>();
+    final _nameController = TextEditingController();
+    final _heightController = TextEditingController();
+    final _waistController = TextEditingController();
+    final _shoesController = TextEditingController();
+    final _contactController = TextEditingController();
+    String? _fileKey;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Adicionar Modelo'),
+          content: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(labelText: 'Nome'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira o nome do modelo';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _heightController,
+                    decoration: InputDecoration(labelText: 'Altura'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira a altura do modelo';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _waistController,
+                    decoration: InputDecoration(labelText: 'Cintura'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira a cintura do modelo';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _shoesController,
+                    decoration: InputDecoration(labelText: 'Calçado'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira o número do calçado do modelo';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _contactController,
+                    decoration: InputDecoration(labelText: 'Contato'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira o contato do modelo';
+                      }
+                      return null;
+                    },
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      // Implementar lógica de upload de imagem
+                      // _fileKey = await _uploadImage();
+                    },
+                    child: Text('Upload de Imagem'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final newModel = {
+                    'name': _nameController.text,
+                    'height': _heightController.text,
+                    'waist': _waistController.text,
+                    'shoes': _shoesController.text,
+                    'contact': _contactController.text,
+                    'file_key': _fileKey,
+                    'agencyId': agency.id,
+                  };
+
+                  // Chamar a função para adicionar o modelo
+                  await _addModel(newModel);
+
+                  Navigator.pop(context);
+                }
+              },
+              child: Text('Adicionar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

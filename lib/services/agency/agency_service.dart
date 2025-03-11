@@ -26,4 +26,14 @@ class AgencyService {
     
     }
     }
+    
+  Future<http.Response> addModel(Map<String, dynamic> modelData) async {
+    final url = '${ApiConfig.apiBaseUrl}/agency';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(modelData),
+    );
+    return response;
+  }
 }

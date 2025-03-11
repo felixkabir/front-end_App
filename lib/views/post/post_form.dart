@@ -53,62 +53,70 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
-  Future<void> _submitPost() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final userId = userProvider.user?.id;
-    final entityType = _isPostingAsAgency ? 'AGENCY' : 'USER'; // Alterado para 'USER'
-    final entityId = _isPostingAsAgency ? _selectedAgencyId! : userId!;
+Future<void> _submitPost() async {
+  final userProvider = Provider.of<UserProvider>(context, listen: false);
+  final userId = userProvider.user?.id;
+  final entityType = _isPostingAsAgency ? 'AGENCY' : 'USER';
+  final entityId = _isPostingAsAgency ? _selectedAgencyId! : userId!;
 
-    if (_endDate!.isBefore(_startDate!)) {
+  // Verifica se _startDate e _endDate não são nulos antes de compará-los
+  if (_isEvent && (_startDate == null || _endDate == null)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Por favor, selecione as datas de início e término.')),
+    );
+    return;
+  }
+
+  if (_isEvent && _endDate!.isBefore(_startDate!)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('A data de término não pode ser anterior à data de início.')),
+    );
+    return;
+  }
+
+  if (_isEvent) {
+    if (_eventNameController.text.isEmpty || 
+        _startDate == null || 
+        _endDate == null || 
+        _selectedFiles.isEmpty || 
+        _locationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('A data de término não pode ser anterior à data de início.')),
+        SnackBar(content: Text('Por favor, preencha todos os campos do evento.')),
       );
       return;
     }
 
-    if (_isEvent) {
-      if (_eventNameController.text.isEmpty || 
-          _startDate == null || 
-          _endDate == null || 
-          _selectedFiles.isEmpty || 
-          _locationController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Por favor, preencha todos os campos do evento.')),
-        );
-        return;
-      }
-
-      await _eventController.createEvent(
-        name: _eventNameController.text,
-        file: _selectedFiles.first,
-        startDate: _startDate!,
-        endDate: _endDate!,
-        entityId: entityId,
-        entityType: entityType,
-        location: _locationController.text,
+    await _eventController.createEvent(
+      name: _eventNameController.text,
+      file: _selectedFiles.first,
+      startDate: _startDate!,
+      endDate: _endDate!,
+      entityId: entityId,
+      entityType: entityType,
+      location: _locationController.text,
+    );
+  } else {
+    if (_contentController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor, insira o conteúdo da postagem.')),
       );
-    } else {
-      if (_contentController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Por favor, insira o conteúdo da postagem.')),
-        );
-        return;
-      }
-
-      await _postController.createPost(
-        content: _contentController.text,
-        files: _selectedFiles,
-        entityId: entityId,
-        entityType: entityType,
-      );
+      return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Postagem criada com sucesso!')),
+    await _postController.createPost(
+      content: _contentController.text,
+      files: _selectedFiles,
+      entityId: entityId,
+      entityType: entityType,
     );
-
-    Navigator.pop(context);
   }
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Postagem criada com sucesso!')),
+  );
+
+  Navigator.pop(context);
+}
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? picked = await showDatePicker(

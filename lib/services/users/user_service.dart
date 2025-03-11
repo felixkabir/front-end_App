@@ -6,7 +6,7 @@ import 'package:stivy/models/user/user_model.dart';
 class UserService {
 
   Future<User> fetchUserById(String userId) async {
-    final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/$userId')).timeout(Duration(seconds: 30));
+    final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/users/$userId')).timeout(Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       return User.fromJson(json.decode(response.body));
