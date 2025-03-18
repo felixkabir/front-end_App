@@ -279,12 +279,9 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
                   builder: (context) => CreateAgencyScreen(userId: userId,
               onAgencyCreated: _refreshAgencies),
                 ),
-              ).then((result) {
-                // Refresh agencies list when returning from CreateAgencyScreen
-                if (result == true) {
-                  // If agency was created successfully
-                  _loadAgencies();
-                  // Optionally: Update user provider to reflect new agency
+              ).then((result) { 
+                if (result == true) { 
+                  _loadAgencies(); 
                   Provider.of<UserProvider>(context, listen: false).refreshUser();
                 }
               });

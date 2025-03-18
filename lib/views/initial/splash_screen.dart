@@ -26,13 +26,22 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkUserState() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    await Future.delayed(Duration(seconds: 2)); 
+    // Aguarde 2 segundos para exibir a tela de splash
+    await Future.delayed(Duration(seconds: 2));
+
+    // Verifique se o usuário está logado
     if (userProvider.isLoggedIn) {
+      // Se estiver logado, vá para a HomePage
       Get.off(() => MainScreen());
-    } else if (userProvider.hasSeenOnboarding) {
-      Get.off(() => LoginScreen());
     } else {
-      Get.off(() => OnboardingScreen());
+      // Se não estiver logado, verifique se já viu o onboarding
+      if (userProvider.hasSeenOnboarding) {
+        // Se já viu o onboarding, vá para a tela de Login
+        Get.off(() => LoginScreen());
+      } else {
+        // Se não viu o onboarding, vá para a tela de Onboarding
+        Get.off(() => OnboardingScreen());
+      }
     }
   }
 

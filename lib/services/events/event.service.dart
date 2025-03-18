@@ -12,6 +12,7 @@ class EventService {
       final response = await http.get(Uri.parse(baseUrl)).timeout(Duration(seconds: 30));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
+      print('Dados recebidos: $data'); // Log para depuração
         return data.map((event) => Event.fromJson(event)).toList();
       } else {
         throw Exception('Falha ao carregar eventos: ${response.statusCode}');
@@ -25,6 +26,21 @@ class EventService {
   Future<List<Event>> fetchEventsByUserId(String id) async {
     try {
       final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/events/user/all/$id')).timeout(Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((event) => Event.fromJson(event)).toList();
+      } else {
+        throw Exception('Falha ao carregar Events do usuário: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Erro ao buscar Events do usuário: $e');
+    }
+  }
+
+  Future<List<Event>> fetchEventsByAgencyID(String id) async {
+    try {
+      final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/events/agency/all/$id')).timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);

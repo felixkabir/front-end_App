@@ -1,3 +1,4 @@
+import 'package:stivy/models/agency/agency_model.dart';
 import 'package:stivy/models/user/user_model.dart';
 
 class Event {
@@ -8,9 +9,11 @@ class Event {
   final String fileKey;
   final DateTime startDate;
   final DateTime endDate;
-  final String userId;
+  final String? userId;
+  final String? agencyId;
   final String? location;
-  final User user;
+  final User? user;
+  final Agency? agency;
 
   Event({
     required this.id,
@@ -20,8 +23,10 @@ class Event {
     required this.fileKey,
     required this.startDate,
     required this.endDate,
-    required this.userId,
-    required this.user,
+    this.userId,
+    this.agencyId,
+    this.user,
+    this.agency,
     this.location,
   });
 
@@ -35,8 +40,10 @@ class Event {
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       userId: json['userId'],
+      agencyId: json['agencyId'],
       location: json['location'],
-      user: User.fromJson(json['user']),
+      user: json['user'] != null ? User.fromJson(json['user']) : null,
+      agency: json['agency'] != null ? Agency.fromJson(json['agency']) : null,
     );
   }
 }

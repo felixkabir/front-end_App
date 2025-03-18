@@ -1,4 +1,6 @@
+import 'package:stivy/models/reaction/reaction_model.dart';
 import 'package:stivy/models/user/user_model.dart';
+import 'package:stivy/models/agency/agency_model.dart';
 
 class Post {
   final String id;
@@ -11,6 +13,8 @@ class Post {
   final String? modelId;
   final List<FileEntity> fileEntities;
   final User? user;
+  final Agency? agency;
+  final List<ReactionModel> reactions;
 
   Post({
     required this.id,
@@ -23,6 +27,8 @@ class Post {
     this.modelId,
     required this.fileEntities,
     this.user,
+    this.agency,
+    required this.reactions,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -30,7 +36,7 @@ class Post {
       id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
       content: json['content'],
-      isWorkModel: json['is_work_model'] ?? false, // Valor padrão caso seja null
+      isWorkModel: json['is_work_model'] ?? false, // Default value if null
       type: json['type'],
       userId: json['userId'],
       agencyId: json['agencyId'],
@@ -38,9 +44,22 @@ class Post {
       fileEntities: (json['file_entity'] as List)
           .map((file) => FileEntity.fromJson(file))
           .toList(),
-      user: json['user'] != null ? User.fromJson(json['user']) : null, // Tratamento para user null
+      user: json['user'] != null ? User.fromJson(json['user']) : null, // Handling for null user
+      agency: json['agency'] != null ? Agency.fromJson(json['agency']) : null, // Handling for null agency
+      reactions: json['Reaction'] != null
+          ? (json['Reaction'] as List)
+              .map((reaction) => ReactionModel.fromJson(reaction))
+              .toList()
+          : [],
     );
   }
+
+
+  bool hasUserReacted(String userId) {
+    return reactions.any((reaction) => reaction.userId == userId);
+  }
+  // Get reaction count
+  int get reactionCount => reactions.length;
 }
 
 class FileEntity {

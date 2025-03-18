@@ -20,7 +20,7 @@ class UserProvider with ChangeNotifier {
 
   UserProvider() {
     loadUserFromStorage();
-    _loadOnboardingStatus();
+    loadOnboardingStatus();
   }
 
 
@@ -51,7 +51,7 @@ Future<void> refreshUser() async {
     }
   }
 
-  Future<void> _loadOnboardingStatus() async {
+  Future<void> loadOnboardingStatus() async {
     final hasSeenOnboarding = await _storageController.getStorage('hasSeenOnboarding');
     if (hasSeenOnboarding is bool) {
       _hasSeenOnboarding = hasSeenOnboarding;

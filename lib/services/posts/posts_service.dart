@@ -25,7 +25,9 @@ class PostService {
 
   Future<Post> fetchPostById(int id) async {
     try {
-      final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/posts/$id')).timeout(Duration(seconds: 30));
+      final response = await http
+          .get(Uri.parse('${ApiConfig.apiBaseUrl}/posts/$id'))
+          .timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         Map<String, dynamic> data = json.decode(response.body);
@@ -40,13 +42,16 @@ class PostService {
 
   Future<List<Post>> fetchPostsByUserId(String id) async {
     try {
-      final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/posts/user/$id')).timeout(Duration(seconds: 30));
+      final response = await http
+          .get(Uri.parse('${ApiConfig.apiBaseUrl}/posts/user/$id'))
+          .timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         return data.map((post) => Post.fromJson(post)).toList();
       } else {
-        throw Exception('Falha ao carregar posts do usuário: ${response.statusCode}');
+        throw Exception(
+            'Falha ao carregar posts do usuário: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Erro ao buscar posts do usuário: $e');
@@ -60,15 +65,34 @@ class PostService {
     required String entityType,
   }) async {
     try {
+      // Log dos dados antes de enviar
+      print('Dados antes de enviar:');
+      print(' - Conteúdo: $content');
+      print(' - Entity ID: $entityId');
+      print(' - Entity Type: $entityType');
+      print(' - Arquivos:');
+      for (var file in files) {
+        print('   - ${file.path}');
+      }
+
+      // Validar dados
+      if (content.isEmpty) {
+        throw Exception('O conteúdo do post não pode estar vazio.');
+      }
+      if (files.isEmpty) {
+        throw Exception('Pelo menos um arquivo deve ser enviado.');
+      }
+
+      // Criar a requisição
       var request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/create/$entityId?type=$entityType'),
       );
 
-      // Adiciona o campo de conteúdo
+      // Adicionar campos
       request.fields['content'] = content;
 
-      // Adiciona os arquivos
+      // Adicionar arquivos
       for (var file in files) {
         request.files.add(
           await http.MultipartFile.fromPath(
@@ -78,18 +102,33 @@ class PostService {
         );
       }
 
+      // Log dos arquivos que serão enviados
+      print('Arquivos a serem enviados:');
       for (var file in request.files) {
         print(' - ${file.field}: ${file.filename}');
       }
 
+      // Enviar a requisição
       var response = await request.send().timeout(Duration(seconds: 30));
 
+      // Verificar o status da resposta
       if (response.statusCode == 200) {
         print('Post criado com sucesso!');
       } else {
-        throw Exception('Falha ao criar post: ${response.statusCode}');
+        // Capturar a resposta de erro
+        String responseBody = await response.stream.bytesToString();
+        print('Falha ao criar post: ${response.statusCode}');
+        print('Resposta do servidor: $responseBody');
+
+        throw Exception(
+            'Falha ao criar post: ${response.statusCode} - $responseBody');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Capturar e logar qualquer exceção
+      print('Exceção capturada: $e');
+      print('StackTrace: $stackTrace');
+
+      // Lançar a exceção para ser tratada pelo chamador
       throw Exception('Erro ao criar post: $e');
     }
   }

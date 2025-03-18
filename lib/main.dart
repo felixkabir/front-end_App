@@ -6,7 +6,10 @@ import 'package:stivy/providers/interest_provider.dart';
 import 'package:stivy/providers/user_provider.dart'; // Importe o UserProvider
 import 'package:stivy/views/initial/splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Garante que o Flutter esteja inicializado
+  final userProvider = UserProvider();
+  await userProvider.loadOnboardingStatus(); 
   runApp(
     MultiProvider(
       providers: [

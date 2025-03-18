@@ -14,9 +14,10 @@ import 'package:stivy/services/posts/posts_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String id;
+  final String? agencyId;
   final bool isAgency;
 
-  const ProfileScreen({required this.id, this.isAgency = false});
+  const ProfileScreen({required this.id, this.isAgency = false, this.agencyId});
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -25,7 +26,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late Future<dynamic> _profileFuture;
   late Future<List<Post>> _postsFuture;
-  late Future<List<Event>> _eventsFuture; // Future para carregar eventos
+  late Future<List<Event>> _eventsFuture;
+  late Future<List<Post>> _agencyPostsFuture;
+  late Future<List<Event>> _agencyEventsFuture; // Future para carregar eventos
   final UserService _userService = UserService();
   final AgencyService _agencyService = AgencyService();
   final PostService _postService = PostService();
@@ -48,7 +51,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? _agencyService.fetchAgencyById(widget.id)
           : _userService.fetchUserById(widget.id);
       _postsFuture = _postService.fetchPostsByUserId(widget.id);
-      _eventsFuture = _eventService.fetchEventsByUserId(widget.id); // Busca eventos do usuário
+      _eventsFuture = _eventService.fetchEventsByUserId(widget.id); 
+      _agencyPostsFuture = _postService.fetchPostsByUserId(widget.id);
+      _agencyEventsFuture = _eventService.fetchEventsByAgencyID(widget.agencyId!); 
     }
   }
 
@@ -342,7 +347,7 @@ class EventCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EventDetailsScreen(event: event, eventId: event.id, userId: event.user.id,),
+            builder: (context) => EventDetailsScreen(event: event, eventId: event.id, userId: event.user!.id, agencyId: event.agency!.id,),
           ),
         );
       },

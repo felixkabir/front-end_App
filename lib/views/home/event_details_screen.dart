@@ -6,12 +6,14 @@ import 'package:stivy/models/event/event_model.dart';
 class EventDetailsScreen extends StatelessWidget {
   final Event event;
   final String eventId;
-  final String userId;
-
+  final String? userId;
+  final String? agencyId;
+  
   const EventDetailsScreen({
     required this.event,
     required this.eventId,
-    required this.userId,
+    this.userId,
+    this.agencyId,
   });
 
   String _formatDate(DateTime? date) {

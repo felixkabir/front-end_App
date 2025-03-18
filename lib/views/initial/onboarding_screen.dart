@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:stivy/providers/user_provider.dart';
 import 'package:stivy/views/auth/login/login_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -45,6 +47,8 @@ class OnboardingScreen extends StatelessWidget {
         ),
         child: FloatingActionButton.extended(
           onPressed: () {
+            final userProvider = Provider.of<UserProvider>(context, listen: false);
+            userProvider.setHasSeenOnboarding(true);
             Get.off(() => LoginScreen());
           },
           backgroundColor: Colors.white,
