@@ -1,0 +1,2 @@
+C:/Users/luzka/Documents/Felix/Stivy_App/stivy/android/app/.cxx/Debug/4f1y632z/x86/CMakeFiles/edit_cache.dir
+C:/Users/luzka/Documents/Felix/Stivy_App/stivy/android/app/.cxx/Debug/4f1y632z/x86/CMakeFiles/rebuild_cache.dir

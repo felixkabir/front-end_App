@@ -8,7 +8,7 @@ class EventDetailsScreen extends StatelessWidget {
   final String eventId;
   final String? userId;
   final String? agencyId;
-  
+
   const EventDetailsScreen({
     required this.event,
     required this.eventId,
@@ -20,7 +20,7 @@ class EventDetailsScreen extends StatelessWidget {
     if (date == null) return 'Data não disponível';
 
     final now = DateTime.now();
-    final difference = date.difference(now); 
+    final difference = date.difference(now);
 
     if (difference.isNegative) {
       return 'Evento já ocorreu';
@@ -55,7 +55,7 @@ class EventDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detalhes do Evento'),
+        title: const Text('Detalhes do Evento'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -63,16 +63,19 @@ class EventDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagem do evento
-            Container(
-              height: 250,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(
-                    '${ApiConfig.apiBaseUrl}/files/${event.fileKey}',
+            // Imagem do evento com efeito de fade
+            Hero(
+              tag: 'event-image-${event.id}',
+              child: Container(
+                height: 250,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(
+                      '${ApiConfig.apiBaseUrl}/files/${event.fileKey}',
+                    ),
+                    fit: BoxFit.cover,
                   ),
-                  fit: BoxFit.cover,
                 ),
               ),
             ),
@@ -86,19 +89,19 @@ class EventDetailsScreen extends StatelessWidget {
                   // Título do evento
                   Text(
                     event.name ?? 'Evento sem nome',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
                   // Local do evento
                   if (event.location != null)
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 16, color: Colors.grey),
-                        SizedBox(width: 4),
+                        const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             event.location!,
@@ -111,13 +114,13 @@ class EventDetailsScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   // Datas do evento
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                      SizedBox(width: 4),
+                      const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           '${_formatDate(event.startDate)} - ${_formatDate(event.endDate)}',
@@ -130,7 +133,7 @@ class EventDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -145,14 +148,14 @@ class EventDetailsScreen extends StatelessWidget {
                     // Ação ao clicar no botão (ex: participar do evento)
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text('Participar do Evento'),
+                  child: const Text('Participar do Evento'),
                 ),
               ),
             ),

@@ -8,7 +8,9 @@ import 'dart:convert';
 class UserProvider with ChangeNotifier {
   User? _user;
   bool _hasSeenOnboarding = false;
-  final StorageController _storageController = StorageController();
+  final StorageController _storageController; 
+
+  UserProvider(this._storageController);
 
   User? get user => _user;
   bool _isLoggedIn = false;
@@ -18,30 +20,18 @@ class UserProvider with ChangeNotifier {
   bool get hasSeenOnboarding => _hasSeenOnboarding;
   bool get isGuestMode => _isGuestMode;
 
-  UserProvider() {
-    loadUserFromStorage();
-    loadOnboardingStatus();
-  }
-
-
   void setGuestMode(bool isGuest) {
     _isGuestMode = isGuest;
     notifyListeners();
   }
-
-
-Future<void> refreshUser() async {
-  try {
-    notifyListeners();
-  } catch (e) {
-    print('Error refreshing user data: $e');
-  }
-}
+  
   Future<void> loadUserFromStorage() async {
     final authData = await _storageController.getStorage("auth");
 
-    if (authData != null && authData['user'] != null && authData['access_token'] != null) {
-      _user = authData['user'];
+    if (authData != null &&
+        authData['user'] != null &&
+        authData['access_token'] != null) {
+      _user = User.fromJson(authData['user']);
       _isLoggedIn = true;
       notifyListeners();
     } else {
@@ -52,7 +42,8 @@ Future<void> refreshUser() async {
   }
 
   Future<void> loadOnboardingStatus() async {
-    final hasSeenOnboarding = await _storageController.getStorage('hasSeenOnboarding');
+    final hasSeenOnboarding =
+        await _storageController.getStorage('hasSeenOnboarding');
     if (hasSeenOnboarding is bool) {
       _hasSeenOnboarding = hasSeenOnboarding;
       notifyListeners();
@@ -61,7 +52,8 @@ Future<void> refreshUser() async {
 
   Future<void> login(User user) async {
     _user = user;
-    await _storageController.addStorage('auth', user.toJson()); // Salva no storage
+    await _storageController.addStorage(
+        'auth', user.toJson()); // Salva no storage
     notifyListeners();
   }
 
@@ -77,29 +69,36 @@ Future<void> refreshUser() async {
     notifyListeners();
   }
 
+  Future<void> logout(String userEmail) async {
+    if (_user != null) {
+      try {
+        final body = jsonEncode({'email': userEmail});
+        final response = await http
+            .put(
+              Uri.parse('${ApiConfig.apiBaseUrl}/auth/user/logout'),
+              headers: {'Content-Type': 'application/json'},
+              body: body,
+            )
+            .timeout(Duration(seconds: 30));
 
-Future<void> logout(String userEmail) async {
-  if (_user != null) {
-    try {
-      print("$_user");
-      print("$userEmail");
-      final body = jsonEncode({'email': userEmail});
-      final response = await http.put(
-        Uri.parse('${ApiConfig.apiBaseUrl}/auth/user/logout'),
-        headers: {'Content-Type': 'application/json'},
-        body: body,
-      ).timeout(Duration(seconds: 30));
-
-      if (response.statusCode == 200) {
-        _user = null;
-        await _storageController.remove('auth');
-        notifyListeners();
-      } else {
-        throw Exception('Failed to log out: ${response.body}');
+        if (response.statusCode == 200) {
+          _user = null;
+          await _storageController.remove('auth');
+          notifyListeners();
+        } else {
+          throw Exception('Failed to log out: ${response.body}');
+        }
+      } catch (e) {
+        throw Exception('Error during logout: $e');
       }
-    } catch (e) {
-      throw Exception('Error during logout: $e');
     }
   }
+
+  Future<void> refreshUser() async {
+    try {
+      notifyListeners();
+    } catch (e) {
+      print('Error refreshing user data: $e');
+    }
   }
 }

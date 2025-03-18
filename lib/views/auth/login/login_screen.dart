@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/controllers/storage_controller.dart';
 import 'package:stivy/providers/user_provider.dart';
@@ -20,15 +21,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  final _formKey = GlobalKey<FormState>(); // Chave para o formulário
-  final StorageController _storageStorage = StorageController();
+  final _formKey = GlobalKey<FormState>();
+  late final StorageController _storageStorage; 
 
-  // Função para validar o email
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeStorageController(); 
+  }
+
+  Future<void> _initializeStorageController() async {
+    final prefs = await SharedPreferences.getInstance();
+    _storageStorage = StorageController(prefs); 
+  }
+
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Por favor, insira seu email';
     }
-    // Expressão regular para validar o email
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
       return 'Por favor, insira um email válido';

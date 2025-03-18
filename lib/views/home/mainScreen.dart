@@ -46,9 +46,8 @@ class _MainScreenState extends State<MainScreen> {
         onMenuTap: () {
           _scaffoldKey.currentState?.openDrawer();
         },
-        isAgencyAccount: false, // Defina conforme necessário
+        isAgencyAccount: false, 
         onProfileSwitch: () {
-          // Lógica para alternar entre perfis
         },
       ),
       drawer: Drawer(
