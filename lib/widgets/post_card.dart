@@ -9,8 +9,7 @@ import 'package:stivy/Api/ApiConfig.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
-  final Function(Post)?
-      onReactionUpdated; // Callback para atualizações de reação
+  final Function(Post)? onReactionUpdated;
 
   PostCard({required this.post, this.onReactionUpdated});
 
@@ -18,8 +17,7 @@ class PostCard extends StatefulWidget {
   _PostCardState createState() => _PostCardState();
 }
 
-class _PostCardState extends State<PostCard>
-    with AutomaticKeepAliveClientMixin {
+class _PostCardState extends State<PostCard> with AutomaticKeepAliveClientMixin {
   final ReactionController _reactionController = ReactionController();
   String _currentUserId = '';
   bool _hasReacted = false;
@@ -27,7 +25,7 @@ class _PostCardState extends State<PostCard>
   bool _isProcessingReaction = false;
 
   @override
-  bool get wantKeepAlive => true; // Mantém o estado do widget ao rolar
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -57,9 +55,7 @@ class _PostCardState extends State<PostCard>
 
   void _updateReactionState() {
     final hasReacted = widget.post.reactions.any(
-      (reaction) =>
-          reaction.userId == _currentUserId &&
-          reaction.postId == widget.post.id,
+      (reaction) => reaction.userId == _currentUserId && reaction.postId == widget.post.id,
     );
 
     setState(() {
@@ -100,7 +96,6 @@ class _PostCardState extends State<PostCard>
 
     try {
       if (_hasReacted) {
-        // Remove a reação se o usuário já tiver reagido
         await _reactionController.removeReactionToPost(
           widget.post.id,
           _currentUserId,
@@ -111,7 +106,6 @@ class _PostCardState extends State<PostCard>
           _reactionCount = _reactionCount > 0 ? _reactionCount - 1 : 0;
         });
       } else {
-        // Adiciona a reação se o usuário ainda não reagiu
         final reaction = await _reactionController.reactToPost(
           userId: _currentUserId,
           postId: widget.post.id,
@@ -125,7 +119,6 @@ class _PostCardState extends State<PostCard>
         }
       }
 
-      // Atualiza o post com a nova reação
       widget.onReactionUpdated?.call(widget.post);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -140,7 +133,7 @@ class _PostCardState extends State<PostCard>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Necessário para AutomaticKeepAliveClientMixin
+    super.build(context);
 
     void _showOptionsMenu(BuildContext context, Post post) {
       final bool isPostOwner = _currentUserId == post.userId;
@@ -170,14 +163,6 @@ class _PostCardState extends State<PostCard>
                   ),
                 ] else ...[
                   ListTile(
-                    leading: Icon(Icons.mail_outline),
-                    title: Text('Contactar'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _contactUser();
-                    },
-                  ),
-                  ListTile(
                     leading: Icon(Icons.report),
                     title: Text('Reportar'),
                     onTap: () {
@@ -202,7 +187,7 @@ class _PostCardState extends State<PostCard>
               post: widget.post,
               postId: widget.post.id,
               userId: widget.post.userId ?? '',
-              agencyId: widget.post.agency!.id ?? '',
+              agencyId: widget.post.agency?.id ?? '',
               onReactionUpdated: widget.onReactionUpdated,
             ),
           ),
@@ -221,14 +206,13 @@ class _PostCardState extends State<PostCard>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              profile.ProfileScreen(id: widget.post.userId!),
+                          builder: (context) => profile.ProfileScreen(id: widget.post.userId!),
                         ),
                       );
                     }
                   },
                   child: Hero(
-                    tag: 'profile-${widget.post.userId}',
+                    tag: 'profile-${widget.post.id}', // Usando post.id para garantir unicidade
                     child: CircleAvatar(
                       radius: 24,
                       backgroundImage: widget.post.user?.fileKey != null
@@ -250,10 +234,7 @@ class _PostCardState extends State<PostCard>
                       Row(
                         children: [
                           Text(
-                            widget.post.user?.username != null
-                                ? widget.post.user!.username
-                                : (widget.post.agency?.name ??
-                                    'Usuário Desconhecido'),
+                            widget.post.user?.username ?? widget.post.agency?.name ?? 'Usuário Desconhecido',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -341,8 +322,7 @@ class _PostCardState extends State<PostCard>
                         bottom: 8,
                         right: 8,
                         child: Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.6),
                             borderRadius: BorderRadius.circular(12),
@@ -373,7 +353,6 @@ class _PostCardState extends State<PostCard>
                   isProcessing: _isProcessingReaction,
                   onTap: _handleReaction,
                 ),
-                _buildContactButton(),
               ],
             ),
           ),
@@ -417,33 +396,5 @@ class _PostCardState extends State<PostCard>
         ],
       ),
     );
-  }
-
-  Widget _buildContactButton() {
-    // Não mostrar o botão de contato para os próprios posts
-    if (_currentUserId == widget.post.userId) {
-      return SizedBox.shrink();
-    }
-
-    return ElevatedButton.icon(
-      onPressed: _contactUser,
-      icon: Icon(Icons.person_add_outlined),
-      label: Text('Contactar'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 16),
-      ),
-    );
-  }
-
-  void _contactUser() {
-    if (_currentUserId.isEmpty || widget.post.userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Não é possível contactar este usuário no momento')),
-      );
-      return;
-    }
   }
 }

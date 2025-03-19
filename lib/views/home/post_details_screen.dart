@@ -162,9 +162,14 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
             // Verifique se o usuário ou a agência não são nulos antes de acessar suas propriedades
             ListTile(
               leading: CircleAvatar(
-                backgroundImage: NetworkImage(
-                  '${ApiConfig.apiBaseUrl}/files/${widget.post.user?.fileKey ?? widget.post.agency?.fileKey ?? 'default_image_key'}',
-                ),
+                backgroundImage: widget.post.user?.fileKey != null
+                    ? NetworkImage(
+                        '${ApiConfig.apiBaseUrl}/files/${widget.post.user!.fileKey}',
+                      )
+                    : AssetImage('assets/default_profile.png') as ImageProvider,
+                child: widget.post.user?.fileKey == null
+                    ? Icon(Icons.person)
+                    : null,
               ),
               title: Text(
                 widget.post.user?.username ??

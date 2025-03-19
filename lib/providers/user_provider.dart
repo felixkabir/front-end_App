@@ -65,7 +65,7 @@ class UserProvider with ChangeNotifier {
   Future<void> login(User user) async {
     _user = user;
     await _storageController.addStorage(
-        'auth', user.toJson()); // Salva no storage
+        'auth', user.toJson()); 
     notifyListeners();
   }
 

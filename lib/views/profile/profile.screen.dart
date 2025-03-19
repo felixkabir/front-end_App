@@ -11,6 +11,7 @@ import 'package:stivy/services/agency/agency_service.dart';
 import 'package:stivy/views/home/post_details_screen.dart';
 import 'package:stivy/views/home/event_details_screen.dart';
 import 'package:stivy/services/posts/posts_service.dart';
+import 'package:stivy/widgets/update_user.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String id;
@@ -105,27 +106,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   return CustomScrollView(
                     slivers: [
-                      // Profile Header
                       SliverAppBar(
-                        expandedHeight: 200,
-                        pinned: true,
-                        backgroundColor: Colors.white,
-                        flexibleSpace: FlexibleSpaceBar(
-                          background: Image.network(
-                            '${ApiConfig.apiBaseUrl}/files/${profile.fileKey ?? 'default-image-key'}',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.person, size: 40);
-                            },
+                          expandedHeight: 200,
+                          pinned: true,
+                          backgroundColor: Colors.white,
+                          flexibleSpace: FlexibleSpaceBar(
+                            background: Image.network(
+                              '${ApiConfig.apiBaseUrl}/files/${profile.fileKey ?? 'default-image-key'}',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.person, size: 40);
+                              },
+                            ),
                           ),
-                        ),
-                        leading: IconButton(
-                          icon: Icon(Icons.arrow_back, color: Colors.black),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
+                          leading: IconButton(
+                            icon: Icon(Icons.arrow_back, color: Colors.black),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          actions: [
+                            if (widget.id != null && profile is User)
+                              IconButton(
+                                icon: Icon(Icons.edit, color: Colors.black),
+                                onPressed: () async {
+                                  final updatedUser = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          UpdateUserScreen(user: profile),
+                                    ),
+                                  );
 
-                      // Profile Info
+                                  // Refresh profile data if user was updated
+                                  if (updatedUser != null) {
+                                    setState(() {
+                                      _initializeData();
+                                    });
+                                  }
+                                },
+                              ),
+                          ]),
                       SliverToBoxAdapter(
                         child: Container(
                           padding: EdgeInsets.all(16),
