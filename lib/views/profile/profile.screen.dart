@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/models/post/post.dart';
-import 'package:stivy/models/event/event_model.dart'; // Importe o modelo de evento
+import 'package:stivy/models/event/event_model.dart';
 import 'package:stivy/models/user/user_model.dart';
 import 'package:stivy/models/agency/agency_model.dart';
 import 'package:stivy/services/events/event.service.dart';
 import 'package:stivy/services/users/user_service.dart';
 import 'package:stivy/services/agency/agency_service.dart';
 import 'package:stivy/views/home/post_details_screen.dart';
-import 'package:stivy/views/home/event_details_screen.dart'; // Importe a tela de detalhes do evento
+import 'package:stivy/views/home/event_details_screen.dart';
 import 'package:stivy/services/posts/posts_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -28,11 +28,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late Future<List<Post>> _postsFuture;
   late Future<List<Event>> _eventsFuture;
   late Future<List<Post>> _agencyPostsFuture;
-  late Future<List<Event>> _agencyEventsFuture; // Future para carregar eventos
+  late Future<List<Event>> _agencyEventsFuture;
   final UserService _userService = UserService();
   final AgencyService _agencyService = AgencyService();
   final PostService _postService = PostService();
-  final EventService _eventService = EventService(); // Serviço de eventos
+  final EventService _eventService = EventService();
 
   @override
   void initState() {
@@ -42,7 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _initializeData() {
     if (widget.id.isEmpty) {
-      // Se o ID for inválido, defina um estado de erro
       _profileFuture = Future.error('ID do perfil inválido');
       _postsFuture = Future.error('ID do perfil inválido');
       _eventsFuture = Future.error('ID do perfil inválido');
@@ -51,9 +50,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? _agencyService.fetchAgencyById(widget.id)
           : _userService.fetchUserById(widget.id);
       _postsFuture = _postService.fetchPostsByUserId(widget.id);
-      _eventsFuture = _eventService.fetchEventsByUserId(widget.id); 
+      _eventsFuture = _eventService.fetchEventsByUserId(widget.id);
       _agencyPostsFuture = _postService.fetchPostsByUserId(widget.id);
-      _agencyEventsFuture = _eventService.fetchEventsByAgencyID(widget.agencyId!); 
+      _agencyEventsFuture =
+          _eventService.fetchEventsByAgencyID(widget.agencyId ?? '');
     }
   }
 
@@ -67,7 +67,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (profileSnapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (profileSnapshot.hasError) {
-            return Center(child: Text('Erro ao carregar perfil: ${profileSnapshot.error}'));
+            return Center(
+                child:
+                    Text('Erro ao carregar perfil: ${profileSnapshot.error}'));
           } else if (!profileSnapshot.hasData || profileSnapshot.data == null) {
             return Center(child: Text('Perfil não encontrado'));
           }
@@ -80,7 +82,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (postsSnapshot.connectionState == ConnectionState.waiting) {
                 return Center(child: CircularProgressIndicator());
               } else if (postsSnapshot.hasError) {
-                return Center(child: Text('Erro ao carregar posts: ${postsSnapshot.error}'));
+                return Center(
+                    child:
+                        Text('Erro ao carregar posts: ${postsSnapshot.error}'));
               }
 
               final posts = postsSnapshot.data ?? [];
@@ -88,10 +92,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               return FutureBuilder<List<Event>>(
                 future: _eventsFuture,
                 builder: (context, eventsSnapshot) {
-                  if (eventsSnapshot.connectionState == ConnectionState.waiting) {
+                  if (eventsSnapshot.connectionState ==
+                      ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   } else if (eventsSnapshot.hasError) {
-                    return Center(child: Text('Erro ao carregar eventos: ${eventsSnapshot.error}'));
+                    return Center(
+                        child: Text(
+                            'Erro ao carregar eventos: ${eventsSnapshot.error}'));
                   }
 
                   final events = eventsSnapshot.data ?? [];
@@ -105,10 +112,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         backgroundColor: Colors.white,
                         flexibleSpace: FlexibleSpaceBar(
                           background: Image.network(
-                            '${ApiConfig.apiBaseUrl}/files/${profile.fileKey}',
+                            '${ApiConfig.apiBaseUrl}/files/${profile.fileKey ?? 'default-image-key'}',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.person, size: 40); // Imagem padrão em caso de erro
+                              return Icon(Icons.person, size: 40);
                             },
                           ),
                         ),
@@ -130,23 +137,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   CircleAvatar(
                                     radius: 40,
                                     backgroundImage: NetworkImage(
-                                      '${ApiConfig.apiBaseUrl}/files/${profile.fileKey}',
+                                      '${ApiConfig.apiBaseUrl}/files/${profile.fileKey ?? 'default-image-key'}',
                                     ),
                                   ),
                                   SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          profile is User ? profile.username : profile.name,
+                                          profile is User
+                                              ? profile.username
+                                              : profile.name,
                                           style: TextStyle(
                                             fontSize: 24,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
-                                          profile is User ? 'Usuário' : 'Agência',
+                                          profile is User
+                                              ? 'Usuário'
+                                              : 'Agência',
                                           style: TextStyle(
                                             color: Colors.grey[600],
                                             fontSize: 16,
@@ -160,16 +172,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               SizedBox(height: 16),
                               Text(
                                 profile is User
-                                    ? 'Email: ${profile.email}'
-                                    : 'Contato: ${profile.contact}',
+                                    ? 'Email: ${profile.email ?? 'N/A'}'
+                                    : 'Contato: ${profile.contact ?? 'N/A'}',
                                 style: TextStyle(fontSize: 16),
                               ),
                               SizedBox(height: 16),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
                                 children: [
-                                  _buildProfileStat('Posts', posts.length.toString()),
-                                  _buildProfileStat('Eventos', events.length.toString()),
+                                  _buildProfileStat(
+                                      'Posts', posts.length.toString()),
+                                  _buildProfileStat(
+                                      'Eventos', events.length.toString()),
                                 ],
                               ),
                             ],
@@ -185,7 +200,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             crossAxisCount: 2,
                             mainAxisSpacing: 16,
                             crossAxisSpacing: 16,
-                            staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                            staggeredTileBuilder: (index) =>
+                                StaggeredTile.fit(1),
                             itemBuilder: (context, index) {
                               bool isLarge = index % 3 == 0;
                               return ProfilePostCard(
@@ -267,7 +283,8 @@ class ProfilePostCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostDetailsScreen(post: post, postId: post.id, userId: ""),
+            builder: (context) =>
+                PostDetailsScreen(post: post, postId: post.id, userId: ""),
           ),
         );
       },
@@ -284,11 +301,13 @@ class ProfilePostCard extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
                 child: Image.network(
-                  '${ApiConfig.apiBaseUrl}/files/${post.fileEntities[0].fileKey}',
+                  post.fileEntities.isNotEmpty
+                      ? '${ApiConfig.apiBaseUrl}/files/${post.fileEntities[0].fileKey}'
+                      : 'https://placeholder.com/default-image.png',
                   fit: BoxFit.cover,
                   width: double.infinity,
                   errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.image, size: 40); // Imagem padrão em caso de erro
+                    return Icon(Icons.image, size: 40);
                   },
                 ),
               ),
@@ -347,7 +366,12 @@ class EventCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EventDetailsScreen(event: event, eventId: event.id, userId: event.user!.id, agencyId: event.agency!.id,),
+            builder: (context) => EventDetailsScreen(
+              event: event,
+              eventId: event.id,
+              userId: event.user?.id ?? '',
+              agencyId: event.agency?.id ?? '',
+            ),
           ),
         );
       },
@@ -369,7 +393,7 @@ class EventCard extends StatelessWidget {
                   '${ApiConfig.apiBaseUrl}/files/${event.fileKey}',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.event, size: 40); // Imagem padrão em caso de erro
+                    return Icon(Icons.event, size: 40);
                   },
                 ),
               ),

@@ -4,14 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 
 class StorageController extends ChangeNotifier {
-  final SharedPreferences _prefs;
-
-  StorageController(this._prefs);
-
-  Future<dynamic> getStorage(String key) async {
-    return _prefs.get(key);
-  }
-
+  final _prefs = SharedPreferences.getInstance();
+  
  Future<void> addStorage(String key, dynamic value) async {
     final prefs = await _prefs;
     if (value is Map || value is List) {
@@ -26,7 +20,24 @@ class StorageController extends ChangeNotifier {
       await prefs.setDouble(key, value);
     }
   }
- 
+
+  Future<dynamic> getStorage(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    bool conditional = await existStorage(key);
+    dynamic loadJson = prefs.getString(key);
+
+    if (conditional) {
+      if (loadJson != null) {
+        dynamic decoded = jsonDecode(loadJson);
+
+        return decoded;
+      } else {
+        return {};
+      }
+    } else {
+      return {};
+    }
+  }
 
   Future<dynamic> existStorage(String key) async {
     final prefs = await SharedPreferences.getInstance();
@@ -34,9 +45,11 @@ class StorageController extends ChangeNotifier {
     return prefs.containsKey(key);
   }
 
- Future<void> remove(String key) async {
-    await _prefs.remove(key);
-  }
+  Future<void> remove(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove(key);
+    notifyListeners();
+  }  
 
   Future<void> truncate_all_storage() async {
     final prefs = await SharedPreferences.getInstance();

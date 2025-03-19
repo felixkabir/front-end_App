@@ -8,9 +8,7 @@ import 'dart:convert';
 class UserProvider with ChangeNotifier {
   User? _user;
   bool _hasSeenOnboarding = false;
-  final StorageController _storageController; 
-
-  UserProvider(this._storageController);
+  final StorageController _storageController = StorageController();
 
   User? get user => _user;
   bool _isLoggedIn = false;
@@ -20,18 +18,32 @@ class UserProvider with ChangeNotifier {
   bool get hasSeenOnboarding => _hasSeenOnboarding;
   bool get isGuestMode => _isGuestMode;
 
+  UserProvider() {
+    loadUserFromStorage();
+    _loadOnboardingStatus();
+  }
+
   void setGuestMode(bool isGuest) {
     _isGuestMode = isGuest;
     notifyListeners();
   }
-  
+
+  Future<void> refreshUser() async {
+    try {
+      notifyListeners();
+    } catch (e) {
+      print('Error refreshing user data: $e');
+    }
+  }
+
   Future<void> loadUserFromStorage() async {
     final authData = await _storageController.getStorage("auth");
 
     if (authData != null &&
         authData['user'] != null &&
         authData['access_token'] != null) {
-      _user = User.fromJson(authData['user']);
+      _user =
+          User.fromJson(authData['user']); // Converte o Map para o modelo User
       _isLoggedIn = true;
       notifyListeners();
     } else {
@@ -41,7 +53,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<void> loadOnboardingStatus() async {
+  Future<void> _loadOnboardingStatus() async {
     final hasSeenOnboarding =
         await _storageController.getStorage('hasSeenOnboarding');
     if (hasSeenOnboarding is bool) {
@@ -72,6 +84,8 @@ class UserProvider with ChangeNotifier {
   Future<void> logout(String userEmail) async {
     if (_user != null) {
       try {
+        print("$_user");
+        print("$userEmail");
         final body = jsonEncode({'email': userEmail});
         final response = await http
             .put(
@@ -91,14 +105,6 @@ class UserProvider with ChangeNotifier {
       } catch (e) {
         throw Exception('Error during logout: $e');
       }
-    }
-  }
-
-  Future<void> refreshUser() async {
-    try {
-      notifyListeners();
-    } catch (e) {
-      print('Error refreshing user data: $e');
     }
   }
 }
