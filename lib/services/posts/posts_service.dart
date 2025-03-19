@@ -132,4 +132,24 @@ class PostService {
       throw Exception('Erro ao criar post: $e');
     }
   }
+
+  // AgencyService.dart
+Future<void> updatePost(String id, Map<String, dynamic> updateData) async {
+  try {
+    final response = await http.put(
+      Uri.parse('${ApiConfig.apiBaseUrl}/posts/$id'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(updateData),
+    );
+
+    if (response.statusCode == 200) {
+      print('Post atualizado com sucesso!');
+    } else {
+      throw Exception('Erro ao atualizar o post: ${response.body}');
+    }
+  } catch (e) {
+    throw Exception('Erro ao atualizar o post: $e');
+  }
+}
+
 }

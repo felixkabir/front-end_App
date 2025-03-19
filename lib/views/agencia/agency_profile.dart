@@ -93,6 +93,192 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen>
     }
   }
 
+  void _showEditAgencyDialog(BuildContext context, Agency agency) {
+    final _formKey = GlobalKey<FormState>();
+    final _nameController = TextEditingController(text: agency.name);
+    final _contactController = TextEditingController(text: agency.contact);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Editar Agência'),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: 'Nome'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira o nome';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _contactController,
+                  decoration: InputDecoration(labelText: 'Contato'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira o contato';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final updateData = {
+                    'name': _nameController.text,
+                    'contact': _contactController.text,
+                  };
+
+                  try {
+                    await _agencyService.updateAgency(
+                        agencyId: agency.id, agencyData: updateData);
+                    Navigator.pop(context);
+                    setState(() {
+                      _agencyFuture = _agencyService.fetchAgencyById(widget.id);
+                    });
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('Erro ao atualizar a agência: $e')),
+                    );
+                  }
+                }
+              },
+              child: Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditModelDialog(BuildContext context, dynamic model) {
+    final _formKey = GlobalKey<FormState>();
+    final _nameController = TextEditingController(text: model.name);
+    final _heightController = TextEditingController(text: model.height);
+    final _waistController = TextEditingController(text: model.waist);
+    final _shoesController = TextEditingController(text: model.shoes);
+    final _contactController = TextEditingController(text: model.contact);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Editar Modelo'),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: 'Nome'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira o nome';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _heightController,
+                  decoration: InputDecoration(labelText: 'Altura (cm)'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira a altura';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _waistController,
+                  decoration: InputDecoration(labelText: 'Cintura (cm)'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira a cintura';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _shoesController,
+                  decoration: InputDecoration(labelText: 'Calçado'),
+                  keyboardType: TextInputType.text,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira o número do calçado';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _contactController,
+                  decoration: InputDecoration(labelText: 'Contato'),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira o contato';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final updateData = {
+                    'name': _nameController.text,
+                    'height': _heightController.text,
+                    'waist': _waistController.text,
+                    'shoes': _shoesController.text,
+                    'contact': _contactController.text,
+                  };
+
+                  try {
+                    await _agencyService.updateModel(model.id, updateData);
+                    Navigator.pop(context);
+                    setState(() {
+                      _agencyFuture = _agencyService.fetchAgencyById(widget.id);
+                    });
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erro ao atualizar o modelo: $e')),
+                    );
+                  }
+                }
+              },
+              child: Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _contactAgency(String phoneNumber) async {
     final url = 'tel:$phoneNumber';
     if (await canLaunch(url)) {
@@ -381,23 +567,52 @@ class _AgencyProfileScreenState extends State<AgencyProfileScreen>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // Botão de exclusão para o proprietário
               if (isOwner)
                 Positioned(
                   bottom: 8,
                   right: 8,
-                  child: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.white),
-                    onPressed: () {
-                      // Mostrar diálogo de confirmação
-                      _showDeleteConfirmationDialog(
-                        context: context,
-                        itemType: 'modelo',
-                        onConfirm: () {
-                          // Implementar exclusão de modelo
+                  child: Row(
+                    // Use Row para alinhar os botões horizontalmente
+                    mainAxisSize: MainAxisSize
+                        .min, // Para ocupar apenas o espaço necessário
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit, color: Colors.white),
+                        onPressed: () {
+                          _showEditModelDialog(context, model);
                         },
-                      );
-                    },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.white),
+                        onPressed: () {
+                          // Mostrar diálogo de confirmação
+                          _showDeleteConfirmationDialog(
+                            context: context,
+                            itemType: 'modelo',
+                            onConfirm: () async {
+                              try {
+                                await _agencyService.deleteModel(model.id, widget.id, widget.userId);
+                                setState(() {
+                                  _agencyFuture =
+                                      _agencyService.fetchAgencyById(widget.id);
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content:
+                                          Text('Modelo excluído com sucesso!')),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content:
+                                          Text('Erro ao excluir o modelo: $e')),
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
             ],

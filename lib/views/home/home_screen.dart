@@ -99,7 +99,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (events.isNotEmpty)
                             Column(
                               children: events
-                                  .map((event) => EventCard(event: event))
+                                  .map((event) => EventCard(
+                                    key:ValueKey(event.id),
+                                    event: event
+                                    ))
                                   .toList(),
                             ),
                         ],

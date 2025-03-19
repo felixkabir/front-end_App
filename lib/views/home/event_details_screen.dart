@@ -8,12 +8,14 @@ class EventDetailsScreen extends StatelessWidget {
   final String eventId;
   final String? userId;
   final String? agencyId;
+  final Function(Event)? onReactionUpdated;
 
   const EventDetailsScreen({
     required this.event,
     required this.eventId,
     this.userId,
     this.agencyId,
+    this.onReactionUpdated,
   });
 
   String _formatDate(DateTime? date) {

@@ -75,13 +75,26 @@ class ReactionService {
     }
   }
 
-  Future<void> deleteReactionToEvent(String reactionId) async {
+  Future<Map<String, dynamic>> deleteReactionToEvent( String eventId, String userId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/event/reaction/$reactionId'),
+      Uri.parse('$baseUrl/posts/reaction/$userId'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, dynamic>{
+        'eventId': eventId,
+      }),
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete reaction');
+    print("Response status code: ${response.statusCode}");
+    print("Response body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      // Decodifica o corpo da resposta JSON
+      final responseData = jsonDecode(response.body);
+      return responseData; // Retorna o JSON decodificado
+    } else {
+      throw Exception('Failed to delete reaction: ${response.body}');
     }
-  }
+  } 
 }

@@ -117,10 +117,20 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     );
   }
 
-  void _contactUser(BuildContext context, String email) async {
+ void _contactUser(BuildContext context, String contact) async {
+  if (contact == null || contact.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Contato não disponível')),
+    );
+    return;
+  }
+
+  // Verifica se o contato é um e-mail ou um telefone
+  if (contact.contains('@')) {
+    // É um e-mail
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: email,
+      path: contact,
       queryParameters: {
         'subject': 'Contato sobre a publicação',
         'body': 'Olá, gostaria de entrar em contato sobre a sua publicação...',
@@ -131,13 +141,25 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
       await launch(emailUri.toString());
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Não foi possível abrir o e-mail.'),
-        ),
+        SnackBar(content: Text('Não foi possível abrir o e-mail.')),
+      );
+    }
+  } else {
+    // É um telefone
+    final Uri phoneUri = Uri(
+      scheme: 'tel',
+      path: contact,
+    );
+
+    if (await canLaunch(phoneUri.toString())) {
+      await launch(phoneUri.toString());
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível realizar a chamada.')),
       );
     }
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -159,7 +181,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // User Info
-            // Verifique se o usuário ou a agência não são nulos antes de acessar suas propriedades
             ListTile(
               leading: CircleAvatar(
                 backgroundImage: widget.post.user?.fileKey != null
@@ -184,10 +205,10 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
               trailing: IconButton(
                 icon: Icon(Icons.email, color: Colors.blue),
                 onPressed: () {
-                  final email =
-                      widget.post.user?.email ?? widget.post.agency?.contact;
-                  if (email != null) {
-                    _contactUser(context, email);
+                  final contact = widget.post.agency?.contact ??
+                      widget.post.user?.email;
+                  if (contact != null) {
+                    _contactUser(context, contact);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Contato não disponível')),
@@ -252,12 +273,17 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
             Padding(
               padding: EdgeInsets.all(16),
               child: ElevatedButton.icon(
-                onPressed: () => _contactUser(
-                  context,
-                  widget.post.user?.email ??
-                      widget.post.agency?.contact ??
-                      'Nome não disponível',
-                ),
+                onPressed: () {
+                  final contact = widget.post.user?.email ??
+                      widget.post.agency?.contact;
+                  if (contact != null) {
+                    _contactUser(context, contact);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Contato não disponível')),
+                    );
+                  }
+                },
                 icon: Icon(Icons.email),
                 label: Text('Contactar'),
                 style: ElevatedButton.styleFrom(

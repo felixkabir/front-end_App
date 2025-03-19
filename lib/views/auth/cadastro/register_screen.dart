@@ -26,7 +26,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   File? _imageFile;
-  // final InterestController _interestController = Get.put(InterestController());
 
   @override
   void initState() {
@@ -34,9 +33,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Busca os interesses ao inicializar a tela
     Provider.of<InterestProvider>(context, listen: false).fetchInterests();
   }
-
-  Map<String, dynamic>? _userData;
-  Map<String, dynamic>? get userData => _userData;
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -48,10 +44,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+void _clearForm(){
+  setState(() {
+    _usernameController.clear();
+    _emailController.clear();
+    _passwordController.clear();
+    _confirmPasswordController.clear();
+    _imageFile = null;
+  });
+}
+  // Função para validar o email
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(
+        r'^[a-zA-Z0-9._%+-]+@gmail.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  // Função para validar a senha
+  bool _isValidPassword(String password) {
+    final passwordRegex = RegExp(
+        r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$');
+    return passwordRegex.hasMatch(password);
+  }
+
+  // Função para validar o nome
+  bool _isValidName(String name) {
+    return name.length > 3;
+  }
+
   Future<void> _registerUser() async {
     final interestProvider =
         Provider.of<InterestProvider>(context, listen: false);
 
+    // Validações
     if (_usernameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
@@ -60,6 +85,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _imageFile == null) {
       Get.snackbar('Erro',
           'Por favor, preencha todos os campos e selecione uma imagem.');
+      return;
+    }
+
+    if (!_isValidName(_usernameController.text)) {
+      Get.snackbar('Erro', 'O nome deve ter mais de 3 letras.');
+      return;
+    }
+
+    if (!_isValidEmail(_emailController.text)) {
+      Get.snackbar('Erro', 'Por favor, insira um email válido.');
+      return;
+    }
+
+    if (!_isValidPassword(_passwordController.text)) {
+      Get.snackbar('Erro',
+          'A senha deve conter pelo menos 8 caracteres, incluindo letras, números e caracteres especiais.');
       return;
     }
 
@@ -87,7 +128,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (response.statusCode == 200) {
         await response.stream.bytesToString();
-        Get.snackbar('Sucesso', 'Usuário cadastrado com sucesso!', backgroundColor: Colors.greenAccent);
+        Get.snackbar('Sucesso', 'Usuário cadastrado com sucesso!',
+            backgroundColor: Colors.greenAccent);
+            _clearForm();
         Get.to(() => LoginScreen());
       } else {
         var errorData = await response.stream.bytesToString();
@@ -304,66 +347,62 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-Widget _buildInterestDropdown(InterestProvider interestProvider) {
-  // Verifica se a lista de interesses está vazia
-  if (interestProvider.interests.isEmpty) {
-    return Center(
-      child: Text(
-        'Carregando interesses...',
-        style: TextStyle(color: Colors.white),
+  Widget _buildInterestDropdown(InterestProvider interestProvider) {
+    if (interestProvider.interests.isEmpty) {
+      return Center(
+        child: Text(
+          'Carregando interesses...',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
+    final uniqueInterests = interestProvider.interests.toSet().toList();
+    final selectedInterest = interestProvider.selectedInterest;
+    final isValidSelectedInterest = selectedInterest != null &&
+        uniqueInterests.any((interest) => interest == selectedInterest);
+
+    return DropdownButtonFormField<Interest>(
+      value: isValidSelectedInterest ? selectedInterest : null,
+      hint: Text(
+        'Selecione um interesse',
+        style: TextStyle(
+          color: Colors.white70,
+        ),
+      ),
+      items: uniqueInterests.map((Interest interest) {
+        return DropdownMenuItem(
+          value: interest,
+          child: Text(
+            interest.name,
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        );
+      }).toList(),
+      onChanged: (Interest? value) {
+        interestProvider.selectInterest(value!);
+      },
+      alignment: Alignment.center,
+      dropdownColor: Colors.purple.shade800,
+      icon: Icon(
+        Icons.arrow_drop_down,
+        color: Colors.white,
+      ),
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.1),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 16,
       ),
     );
   }
-
-  // Remove duplicatas (se necessário)
-  final uniqueInterests = interestProvider.interests.toSet().toList();
-
-  // Verifica se o selectedInterest está na lista de interesses
-  final selectedInterest = interestProvider.selectedInterest;
-  final isValidSelectedInterest = selectedInterest != null &&
-      uniqueInterests.any((interest) => interest == selectedInterest);
-
-  return DropdownButtonFormField<Interest>(
-    value: isValidSelectedInterest ? selectedInterest : null, // Define o valor apenas se for válido
-    hint: Text(
-      'Selecione um interesse',
-      style: TextStyle(
-        color: Colors.white70, // Cor do texto do hint
-      ),
-    ),
-    items: uniqueInterests.map((Interest interest) {
-      return DropdownMenuItem(
-        value: interest,
-        child: Text(
-          interest.name,
-          style: TextStyle(
-            color: Colors.white, // Cor do texto dos itens
-          ),
-        ),
-      );
-    }).toList(),
-    onChanged: (Interest? value) {
-      interestProvider.selectInterest(value!);
-    },
-    alignment: Alignment.center, // Centraliza o texto selecionado
-    dropdownColor: Colors.purple.shade800, // Cor de fundo do menu suspenso
-    icon: Icon(
-      Icons.arrow_drop_down,
-      color: Colors.white, // Cor do ícone
-    ),
-    decoration: InputDecoration(
-      border: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.5)), // Borda sutil
-        borderRadius: BorderRadius.circular(12), // Bordas arredondadas
-      ),
-      filled: true,
-      fillColor: Colors.white.withOpacity(0.1), // Cor de fundo do dropdown
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12), // Padding interno
-    ),
-    style: TextStyle(
-      color: Colors.white, // Cor do texto selecionado
-      fontSize: 16,
-    ),
-  );
-}
 }

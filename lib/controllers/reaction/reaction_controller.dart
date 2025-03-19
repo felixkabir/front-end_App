@@ -28,7 +28,7 @@ class ReactionController {
     await _reactionService.deleteReactionToPost(userId, postId);
   }
 
-  Future<void> removeReaction(String reactionId) async {
-    await _reactionService.deleteReactionToEvent(reactionId);
+  Future<void> removeReactionToEvent(String eventId, String userId) async {
+    await _reactionService.deleteReactionToEvent(eventId, userId);
   }
 }

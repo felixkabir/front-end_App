@@ -1,4 +1,5 @@
 import 'package:stivy/models/agency/agency_model.dart';
+import 'package:stivy/models/reaction/reaction_model.dart';
 import 'package:stivy/models/user/user_model.dart';
 
 class Event {
@@ -14,6 +15,8 @@ class Event {
   final String? location;
   final User? user;
   final Agency? agency;
+  final List<ReactionModel> reactions;
+  
 
   Event({
     required this.id,
@@ -23,6 +26,7 @@ class Event {
     required this.fileKey,
     required this.startDate,
     required this.endDate,
+    required this.reactions,
     this.userId,
     this.agencyId,
     this.user,
@@ -44,6 +48,16 @@ class Event {
       location: json['location'],
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       agency: json['agency'] != null ? Agency.fromJson(json['agency']) : null,
+            reactions: json['Reaction'] != null
+          ? (json['Reaction'] as List)
+              .map((reaction) => ReactionModel.fromJson(reaction))
+              .toList()
+          : [],
     );
   }
+  
+  bool hasUserReacted(String userId) {
+    return reactions.any((reaction) => reaction.userId == userId);
+  }
+  int get reactionCount => reactions.length;
 }

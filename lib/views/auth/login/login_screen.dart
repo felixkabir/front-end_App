@@ -107,7 +107,7 @@ Future<void> _login() async {
         userProvider.setUser(userData); 
         await _storageStorage.addStorage("auth", _userData);
 
-        Get.offAndToNamed("/mainScreen");
+        Get.offAll(() => MainScreen());
       } else {
         final errorMessage = jsonDecode(response.body)['message'] ?? 'Erro no login';
         Get.snackbar(
