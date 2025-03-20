@@ -29,11 +29,10 @@ class _SearchScreenState extends State<SearchScreen> {
   // Lista de categorias para filtro
   final List<String> _categories = [
     'Tudo',
-    'Agências',
+    'Usuários',
     'Modelos',
-    'Serviços',
+    'Trabalhos',
     'Eventos',
-    'Publicações',
   ];
 
   // Filtros inteligentes
@@ -57,11 +56,9 @@ class _SearchScreenState extends State<SearchScreen> {
       final posts = await _searchAllControllerApi.getPosts();
       final users = await _searchAllControllerApi.getUsers();
       final models = await _searchAllControllerApi.getModels();
-      // final agencies = await _searchAllControllerApi.getAgencies();
 
       setState(() {
         _searchResults = [
-          // ...agencies.map((a) => {'type': 'Agência', 'data': a}),
           ...events.map((e) => {'type': 'Evento', 'data': e}),
           ...posts.map((p) => {'type': 'Publicação', 'data': p}),
           ...users.map((u) => {'type': 'Usuário', 'data': u}),
@@ -89,20 +86,10 @@ class _SearchScreenState extends State<SearchScreen> {
       } else if (type == 'Usuário') {
         name = (data as User).username;
       } else if (type == 'Modelo') {
-        // Verifica se o data é realmente uma instância de Model
         if (data is Model) {
           name = data.name;
         } else {
-          // Se não for, ignora este resultado
-          return false;
-        }
-      } else if (type == 'Agência') {
-        // Verifica se o data é realmente uma instância de Agency
-        if (data is Agency) {
-          name = data.name;
-        } else {
-          // Se não for, ignora este resultado
-          return false;
+          return false; // Ignora se não for uma instância de Model
         }
       }
 
@@ -112,9 +99,10 @@ class _SearchScreenState extends State<SearchScreen> {
       // Verifica se o resultado corresponde à categoria selecionada
       final matchesCategory = _selectedCategory == 'Tudo' ||
           (_selectedCategory == 'Eventos' && type == 'Evento') ||
-          (_selectedCategory == 'Publicações' && type == 'Publicação') ||
-          (_selectedCategory == 'Modelos' && type == 'Modelo') ||
-          (_selectedCategory == 'Agências' && type == 'Agência') ||
+          (_selectedCategory == 'Trabalhos' &&
+              type == 'Publicação') || // Corrigido aqui
+          (_selectedCategory == 'Modelos' &&
+              type == 'Modelo') || // Corrigido aqui
           (_selectedCategory == 'Usuários' && type == 'Usuário');
 
       // Verifica se o resultado corresponde aos filtros inteligentes
@@ -123,7 +111,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
       return matchesQuery && matchesCategory && matchesFilters;
     }).toList();
-  } // Abre o Bottom Sheet com filtros inteligentes
+  }
 
   void _openFilterBottomSheet() {
     showModalBottomSheet(
@@ -184,6 +172,9 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(_selectedCategory),
+      ),
       body: Column(
         children: [
           // Campo de pesquisa
@@ -294,7 +285,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _navigateToResultDetails(Map<String, dynamic> result) {
-    final userProvider = Provider.of<UserProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final userId = userProvider.user?.id;
     final data = result['data'];
     final type = result['type'];
