@@ -18,16 +18,22 @@ class AgencyService {
     }
   }
 
-  Future<List<Agency>> fetchAllAgencies() async {
-    final response = await http
-        .get(Uri.parse('${ApiConfig.apiBaseUrl}/agency'))
-        .timeout(Duration(seconds: 30));
+Future<List<Agency>> fetchAllAgencies() async {
+    try {
+      final response = await http
+          .get(Uri.parse('${ApiConfig.apiBaseUrl}/agency'))
+          .timeout(Duration(seconds: 30));
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Agency.fromJson(json)).toList();
-    } else {
-      throw Exception('Falha ao carregar agências');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        print('Dados recebidos da API: $data'); // Log para depuração
+        return data.map((json) => Agency.fromJson(json)).toList();
+      } else {
+        throw Exception('Falha ao carregar agências: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Erro ao buscar agências: $e'); // Log para depuração
+      throw Exception('Erro ao buscar agências: $e');
     }
   }
 
@@ -163,7 +169,8 @@ class AgencyService {
   Future<void> deleteModel(String id, String agencyId, String userId) async {
     try {
       final response = await http.delete(
-        Uri.parse('${ApiConfig.apiBaseUrl}/models/delete/$agencyId/$userId/$id'),
+        Uri.parse(
+            '${ApiConfig.apiBaseUrl}/models/delete/$agencyId/$userId/$id'),
       );
 
       if (response.statusCode == 200) {

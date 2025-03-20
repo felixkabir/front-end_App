@@ -188,7 +188,6 @@ class _PostCardState extends State<PostCard> with AutomaticKeepAliveClientMixin 
               postId: widget.post.id,
               userId: widget.post.userId ?? '',
               agencyId: widget.post.agency?.id ?? '',
-              onReactionUpdated: widget.onReactionUpdated,
             ),
           ),
         );
@@ -212,7 +211,7 @@ class _PostCardState extends State<PostCard> with AutomaticKeepAliveClientMixin 
                     }
                   },
                   child: Hero(
-                    tag: 'profile-${widget.post.id}', // Usando post.id para garantir unicidade
+                    tag: 'profile-${widget.post.id}', 
                     child: CircleAvatar(
                       radius: 24,
                       backgroundImage: widget.post.user?.fileKey != null

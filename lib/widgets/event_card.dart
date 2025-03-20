@@ -9,10 +9,9 @@ import 'package:stivy/views/home/event_details_screen.dart';
 
 class EventCard extends StatefulWidget {
   final Event event;
-  final Function(Event)? onReactionUpdated;
 
   const EventCard({
-    Key? key, required this.event, this.onReactionUpdated});
+    Key? key, required this.event,});
 
   @override
   _EventCardState createState() => _EventCardState();
@@ -119,7 +118,6 @@ class _EventCardState extends State<EventCard> {
         }
       }
 
-      widget.onReactionUpdated?.call(widget.event);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao reagir: $e')),
@@ -183,7 +181,6 @@ class _EventCardState extends State<EventCard> {
               event: widget.event,
               eventId: widget.event.id,
               userId: widget.event.userId ?? 'default_user_id',
-              onReactionUpdated: widget.onReactionUpdated,
             ),
           ),
         );

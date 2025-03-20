@@ -24,10 +24,11 @@ class UserService {
         .timeout(Duration(seconds: 30));
 
     if (response.statusCode == 200) {
-      return json
-          .decode(response.body)
-          .map((json) => User.fromJson(json))
-          .toList();
+    // Decodifica o JSON para uma lista dinâmica
+    List<dynamic> jsonList = json.decode(response.body);
+    
+    // Mapeia a lista dinâmica para uma lista de objetos User
+    return jsonList.map((json) => User.fromJson(json)).toList();
     } else {
       throw Exception('Falha ao carregar lista de usuários');
     }

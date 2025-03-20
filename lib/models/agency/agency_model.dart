@@ -11,6 +11,7 @@ class Model {
   final String fileKey;
   final String? userId;
   final String agencyId;
+  final Agency? agency;
 
   Model({
     required this.id,
@@ -22,6 +23,7 @@ class Model {
     required this.fileUrl,
     required this.fileKey,
     required this.agencyId,
+    this.agency,
     this.userId,
   });
 
@@ -36,6 +38,7 @@ class Model {
       fileUrl: json['file_url'] ?? "",
       fileKey: json['file_key'] ?? "",
       agencyId: json['agencyId'] ?? "",
+      agency: Agency.fromJson(json['agency']),
       userId: json['userId'],
     );
   }

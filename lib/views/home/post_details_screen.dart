@@ -12,14 +12,12 @@ class PostDetailsScreen extends StatefulWidget {
   final String postId;
   final String? agencyId;
   final String? userId;
-  final Function(Post)? onReactionUpdated; // Callback para atualizar a reação
 
   const PostDetailsScreen({
     required this.post,
     required this.postId,
     this.userId,
     this.agencyId,
-    this.onReactionUpdated,
   });
 
   @override
@@ -82,7 +80,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
       }
 
       // Atualiza o post com a nova reação
-      widget.onReactionUpdated?.call(widget.post);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao reagir: $e')),
