@@ -13,7 +13,7 @@ class EventService {
           await http.get(Uri.parse(baseUrl)).timeout(Duration(seconds: 30));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        print('Dados recebidos: $data'); // Log para depuração
+        print('Dados recebidos: $data'); 
         return data.map((event) => Event.fromJson(event)).toList();
       } else {
         throw Exception('Falha ao carregar eventos: ${response.statusCode}');

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:stivy/controllers/search/search_controller.dart';
+import 'package:stivy/models/event/event_model.dart';
+import 'package:stivy/models/post/post.dart';
+import 'package:stivy/models/user/user_model.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -7,9 +11,11 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final SearchAllController _searchAllControllerApi = SearchAllController();
   String _searchQuery = '';
-  String _selectedCategory = 'Tudo'; // Categoria selecionada
-  List<String> _selectedFilters = []; // Filtros selecionados no Bottom Sheet
+  String _selectedCategory = 'Tudo';
+  List<String> _selectedFilters = [];
+  List<dynamic> _searchResults = [];
 
   // Lista de categorias para filtro
   final List<String> _categories = [
@@ -30,54 +36,58 @@ class _SearchScreenState extends State<SearchScreen> {
     {'label': 'Agência', 'value': 'agency'},
   ];
 
-  // Dados de exemplo para resultados de pesquisa
-  final List<Map<String, dynamic>> _searchResults = [
-    {
-      'type': 'Agência',
-      'name': 'Fashion Agency Pro',
-      'image': 'https://i.pravatar.cc/150?img=1',
-      'filter': 'agency',
-    },
-    {
-      'type': 'Modelo',
-      'name': 'Isabella Model',
-      'image': 'https://i.pravatar.cc/150?img=2',
-      'filter': 'model',
-    },
-    {
-      'type': 'Serviço',
-      'name': 'Fotógrafo Profissional',
-      'image': 'https://i.pravatar.cc/150?img=3',
-      'filter': 'photographer',
-    },
-    {
-      'type': 'Evento',
-      'name': 'Fashion Week 2024',
-      'image': 'https://i.pravatar.cc/150?img=4',
-      'filter': 'fashion_lover',
-    },
-    {
-      'type': 'Publicação',
-      'name': 'Novo Look Verão 2024',
-      'image': 'https://i.pravatar.cc/150?img=5',
-      'filter': 'designer',
-    },
-  ];
-
-  // Filtra os resultados com base na consulta, categoria e filtros inteligentes
-  List<Map<String, dynamic>> get _filteredResults {
-    return _searchResults.where((result) {
-      final matchesQuery = result['name']
-          .toLowerCase()
-          .contains(_searchQuery.toLowerCase());
-      final matchesCategory = _selectedCategory == 'Tudo' ||
-          result['type'] == _selectedCategory;
-      final matchesFilters = _selectedFilters.isEmpty ||
-          _selectedFilters.contains(result['filter']);
-      return matchesQuery && matchesCategory && matchesFilters;
-    }).toList();
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
   }
 
+  // Carregar dados da API
+  Future<void> _loadData() async {
+    try {
+      final events = await _searchAllControllerApi.getEvents();
+      final posts = await _searchAllControllerApi.getPosts();
+      final users = await _searchAllControllerApi.getUsers();
+      final models = await _searchAllControllerApi.getModels();
+
+      setState(() {
+        _searchResults = [
+          ...events.map((e) => {'type': 'Evento', 'data': e}),
+          ...posts.map((p) => {'type': 'Publicação', 'data': p}),
+          ...users.map((u) => {'type': 'Usuário', 'data': u}),
+          ...models.map((m) => {'type': 'Modelo', 'data': m}),
+        ];
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar dados: $e')),
+      );
+    }
+  }
+
+  // Filtra os resultados com base na consulta, categoria e filtros
+  List<dynamic> get _filteredResults {
+  return _searchResults.where((result) {
+    final data = result['data'];
+    final type = result['type'];
+
+    // Verifica se o resultado corresponde à consulta de pesquisa
+    final matchesQuery = (data['name'] ?? data['username'] ?? '')
+        .toString()
+        .toLowerCase()
+        .contains(_searchQuery.toLowerCase());
+
+    // Verifica se o resultado corresponde à categoria selecionada
+    final matchesCategory = _selectedCategory == 'Tudo' ||
+        type == _selectedCategory;
+
+    // Verifica se o resultado corresponde aos filtros inteligentes
+    final matchesFilters = _selectedFilters.isEmpty ||
+        (data['filter'] != null && _selectedFilters.contains(data['filter']));
+
+    return matchesQuery && matchesCategory && matchesFilters;
+  }).toList();
+}
   // Abre o Bottom Sheet com filtros inteligentes
   void _openFilterBottomSheet() {
     showModalBottomSheet(
@@ -180,20 +190,34 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
 
+          // Botão de filtros inteligentes
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: _openFilterBottomSheet,
+              child: Text('Filtros Inteligentes'),
+            ),
+          ),
+
           // Resultados da pesquisa
           Expanded(
             child: ListView.builder(
               itemCount: _filteredResults.length,
               itemBuilder: (context, index) {
                 final result = _filteredResults[index];
+                final data = result['data'];
+                final type = result['type'];
+
                 return Card(
                   margin: EdgeInsets.all(8),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: NetworkImage(result['image']),
+                      backgroundImage: NetworkImage(
+                        data['file_url'] ?? 'https://via.placeholder.com/150',
+                      ),
                     ),
-                    title: Text(result['name']),
-                    subtitle: Text(result['type']),
+                    title: Text(data['name'] ?? 'Sem nome'),
+                    subtitle: Text(type),
                     onTap: () {
                       _navigateToResultDetails(result);
                     },
@@ -209,21 +233,21 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // Navega para a tela de detalhes do resultado
   void _navigateToResultDetails(Map<String, dynamic> result) {
-    switch (result['type']) {
-      case 'Agência':
-        // Navegar para a tela de perfil da agência
-        break;
-      case 'Modelo':
-        // Navegar para a tela de perfil do modelo
-        break;
-      case 'Serviço':
-        // Navegar para a tela de detalhes do serviço
-        break;
+    final data = result['data'];
+    final type = result['type'];
+
+    switch (type) {
       case 'Evento':
         // Navegar para a tela de detalhes do evento
         break;
       case 'Publicação':
         // Navegar para a tela de detalhes da publicação
+        break;
+      case 'Usuário':
+        // Navegar para a tela de perfil do usuário
+        break;
+      case 'Modelo':
+        // Navegar para a tela de perfil do modelo
         break;
     }
   }

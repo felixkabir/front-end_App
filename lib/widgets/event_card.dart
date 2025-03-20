@@ -68,8 +68,10 @@ class _EventCardState extends State<EventCard> {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-    if (difference.inSeconds < 60) {
+    if (difference.inSeconds < 10) {
       return 'Agora mesmo';
+    } else if (difference.inSeconds > 10 && difference.inSeconds < 60) {
+      return '${difference.inSeconds}s atrás';
     } else if (difference.inMinutes < 60) {
       return '${difference.inMinutes} minuto${difference.inMinutes > 1 ? 's' : ''} atrás';
     } else if (difference.inHours < 24) {
