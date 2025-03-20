@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stivy/views/auth/login/login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/models/post/post.dart';
@@ -43,7 +44,42 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     });
   }
 
+void _showLoginRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Login necessário'),
+          content: Text('Você precisa estar logado para reagir a este post.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Fechar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Fazer Login'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()));
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _handleReaction() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isLoggedIn = userProvider.isLoggedIn;
+
+    if (!isLoggedIn) {
+      _showLoginRequiredDialog();
+      return;
+    }
     if (_isProcessingReaction ||
         widget.userId == null ||
         widget.userId!.isEmpty) {
@@ -114,49 +150,51 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     );
   }
 
- void _contactUser(BuildContext context, String contact) async {
-  if (contact == null || contact.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Contato não disponível')),
-    );
-    return;
+  void _contactUser(BuildContext context, String contact) async {
+    if (contact == null || contact.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Contato não disponível')),
+      );
+      return;
+    }
+
+    // Verifica se o contato é um e-mail ou um telefone
+    if (contact.contains('@')) {
+      // É um e-mail
+      final Uri emailUri = Uri(
+        scheme: 'mailto',
+        path: contact,
+        queryParameters: {
+          'subject': 'Contato sobre a publicação',
+          'body':
+              'Olá, gostaria de entrar em contato sobre a sua publicação...',
+        },
+      );
+
+      if (await canLaunch(emailUri.toString())) {
+        await launch(emailUri.toString());
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível abrir o e-mail.')),
+        );
+      }
+    } else {
+      // É um telefone
+      final Uri phoneUri = Uri(
+        scheme: 'tel',
+        path: contact,
+      );
+
+      if (await canLaunch(phoneUri.toString())) {
+        await launch(phoneUri.toString());
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível realizar a chamada.')),
+        );
+      }
+    }
   }
 
-  // Verifica se o contato é um e-mail ou um telefone
-  if (contact.contains('@')) {
-    // É um e-mail
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: contact,
-      queryParameters: {
-        'subject': 'Contato sobre a publicação',
-        'body': 'Olá, gostaria de entrar em contato sobre a sua publicação...',
-      },
-    );
-
-    if (await canLaunch(emailUri.toString())) {
-      await launch(emailUri.toString());
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível abrir o e-mail.')),
-      );
-    }
-  } else {
-    // É um telefone
-    final Uri phoneUri = Uri(
-      scheme: 'tel',
-      path: contact,
-    );
-
-    if (await canLaunch(phoneUri.toString())) {
-      await launch(phoneUri.toString());
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Não foi possível realizar a chamada.')),
-      );
-    }
-  }
-}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -202,8 +240,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
               trailing: IconButton(
                 icon: Icon(Icons.email, color: Colors.blue),
                 onPressed: () {
-                  final contact = widget.post.agency?.contact ??
-                      widget.post.user?.email;
+                  final contact =
+                      widget.post.agency?.contact ?? widget.post.user?.email;
                   if (contact != null) {
                     _contactUser(context, contact);
                   } else {
@@ -271,8 +309,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
               padding: EdgeInsets.all(16),
               child: ElevatedButton.icon(
                 onPressed: () {
-                  final contact = widget.post.user?.email ??
-                      widget.post.agency?.contact;
+                  final contact =
+                      widget.post.user?.email ?? widget.post.agency?.contact;
                   if (contact != null) {
                     _contactUser(context, contact);
                   } else {

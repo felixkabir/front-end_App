@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Para formatar as datas
+import 'package:provider/provider.dart';
 import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/models/event/event_model.dart';
+import 'package:stivy/providers/user_provider.dart';
 
 class EventDetailsScreen extends StatelessWidget {
   final Event event;
@@ -100,7 +102,8 @@ class EventDetailsScreen extends StatelessWidget {
                   if (event.location != null)
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                        const Icon(Icons.location_on,
+                            size: 16, color: Colors.grey),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -119,7 +122,8 @@ class EventDetailsScreen extends StatelessWidget {
                   // Datas do evento
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      const Icon(Icons.calendar_today,
+                          size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(

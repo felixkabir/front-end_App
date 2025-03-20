@@ -38,7 +38,7 @@ class Model {
       fileUrl: json['file_url'] ?? "",
       fileKey: json['file_key'] ?? "",
       agencyId: json['agencyId'] ?? "",
-      agency: Agency.fromJson(json['agency']),
+      agency: json['agency'] != null ? Agency.fromJson(json['agency']) : null,
       userId: json['userId'],
     );
   }
@@ -50,7 +50,7 @@ class Model {
       'height': height,
       'waist': waist,
       'shoes': shoes,
-      'contact': contact, 
+      'contact': contact,
       'file': fileKey,
       'agencyId': agencyId,
       'userId': userId,
@@ -127,7 +127,7 @@ class Agency {
           : 0,
     );
   }
-
+  
   Map<String, dynamic> toJson() {
     return {
       'id': id,

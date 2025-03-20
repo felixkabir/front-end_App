@@ -40,6 +40,7 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
       _agenciesFuture = _agencyService.fetchAllAgencies();
     });
   }
+
   Future<List<Agency>> get _filteredAgencies {
     return _agenciesFuture.then((agencies) {
       return agencies.where((agency) {
@@ -234,7 +235,7 @@ class _AgenciesScreenState extends State<AgenciesScreen> {
                                         agency.rating?.toString() ?? '0',
                                         style: TextStyle(fontSize: 14),
                                       ),
-                                      SizedBox(width: 16),
+                                      Spacer(),
                                       Icon(Icons.people,
                                           color: Colors.grey, size: 16),
                                       SizedBox(width: 4),

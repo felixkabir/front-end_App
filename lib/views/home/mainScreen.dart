@@ -16,10 +16,22 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  final GlobalKey<ScaffoldState> _scaffoldKey =
-      GlobalKey<ScaffoldState>(); // Chave para o Scaffold
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void _onItemTapped(int index) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isLoggedIn = userProvider.isLoggedIn;
+    
+    // Se o usuário não estiver logado e tentar acessar o perfil,
+    // redirecionar para a tela de login
+    if (!isLoggedIn && index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+      return;
+    }
+    
     setState(() {
       _selectedIndex = index;
     });
@@ -32,11 +44,12 @@ class _MainScreenState extends State<MainScreen> {
     final userId = userProvider.user?.id;
     final userEmail = userProvider.user?.email;
 
+    // Lista de widgets condicionais baseada no status de login
     final List<Widget> _widgetOptions = <Widget>[
       HomeScreen(),
       SearchScreen(),
       AgenciesScreen(),
-      ProfileScreen(id: userId ?? ''),
+      isLoggedIn ? ProfileScreen(id: userId ?? '') : LoginScreen(),
       SettingsScreen(),
     ];
 
@@ -46,7 +59,7 @@ class _MainScreenState extends State<MainScreen> {
         onMenuTap: () {
           _scaffoldKey.currentState?.openDrawer();
         },
-        isAgencyAccount: false, // Defina conforme necessário
+        isAgencyAccount: false,
         onProfileSwitch: () {
           // Lógica para alternar entre perfis
         },
@@ -76,7 +89,7 @@ class _MainScreenState extends State<MainScreen> {
                   Text(
                     isLoggedIn
                         ? userProvider.user?.username ?? 'Usuário'
-                        : 'Convidado',
+                        : 'Visitante',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -101,7 +114,7 @@ class _MainScreenState extends State<MainScreen> {
                 setState(() {
                   _selectedIndex = 0;
                 });
-                Navigator.pop(context); // Fecha o Drawer
+                Navigator.pop(context);
               },
             ),
             ListTile(
@@ -111,7 +124,7 @@ class _MainScreenState extends State<MainScreen> {
                 setState(() {
                   _selectedIndex = 1;
                 });
-                Navigator.pop(context); // Fecha o Drawer
+                Navigator.pop(context);
               },
             ),
             ListTile(
@@ -121,20 +134,18 @@ class _MainScreenState extends State<MainScreen> {
                 setState(() {
                   _selectedIndex = 2;
                 });
-                Navigator.pop(context); // Fecha o Drawer
+                Navigator.pop(context);
               },
             ),
+            if (isLoggedIn)
             ListTile(
               leading: Icon(Icons.person),
               title: Text('Perfil'),
               onTap: () {
                 if (isLoggedIn && userId != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfileScreen(id: userId),
-                    ),
-                  );
+                  setState(() {
+                    _selectedIndex = 3;
+                  });
                 } else {
                   Navigator.push(
                     context,
@@ -143,7 +154,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   );
                 }
-                Navigator.pop(context); // Fecha o Drawer
+                Navigator.pop(context);
               },
             ),
             ListTile(
@@ -153,28 +164,26 @@ class _MainScreenState extends State<MainScreen> {
                 setState(() {
                   _selectedIndex = 4;
                 });
-                Navigator.pop(context); // Fecha o Drawer
+                Navigator.pop(context);
               },
             ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Sair'),
-              onTap: () async {
-                final userProvider =
-                
-                Provider.of<UserProvider>(context, listen: false);
-                if (userEmail != null) {
-                  await userProvider.logout(userEmail); 
-                }
+            if (isLoggedIn)
+              ListTile(
+                leading: Icon(Icons.logout),
+                title: Text('Sair'),
+                onTap: () async {
+                  final userProvider = Provider.of<UserProvider>(context, listen: false);
+                  if (userEmail != null) {
+                    await userProvider.logout(userEmail); 
+                  }
 
-                // Redireciona para a tela de login
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                  (route) => false, // Remove todas as rotas anteriores
-                );
-              },
-            ),
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                    (route) => false,
+                  );
+                },
+              ),
           ],
         ),
       ),
@@ -182,30 +191,30 @@ class _MainScreenState extends State<MainScreen> {
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+        items: <BottomNavigationBarItem>[
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.search),
             label: 'Pesquisar',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.business),
             label: 'Agências',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
+            icon: Icon(isLoggedIn ? Icons.person : Icons.login),
+            label: isLoggedIn ? 'Perfil' : 'Login',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Configurações',
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent, 
+        selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.black,
         onTap: _onItemTapped,
       ),

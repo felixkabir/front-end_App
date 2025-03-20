@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:stivy/controllers/reaction/reaction_controller.dart';
 import 'package:stivy/models/event/event_model.dart';
 import 'package:stivy/providers/user_provider.dart';
+import 'package:stivy/views/auth/login/login_screen.dart';
 import 'package:stivy/views/profile/profile.screen.dart' as profile;
 import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/views/home/event_details_screen.dart';
@@ -11,7 +12,9 @@ class EventCard extends StatefulWidget {
   final Event event;
 
   const EventCard({
-    Key? key, required this.event,});
+    Key? key,
+    required this.event,
+  });
 
   @override
   _EventCardState createState() => _EventCardState();
@@ -52,7 +55,9 @@ class _EventCardState extends State<EventCard> {
 
   void _updateReactionState() {
     final hasReacted = widget.event.reactions.any(
-      (reaction) => reaction.userId == _currentUserId && reaction.eventId == widget.event.id,
+      (reaction) =>
+          reaction.userId == _currentUserId &&
+          reaction.eventId == widget.event.id,
     );
 
     setState(() {
@@ -86,7 +91,42 @@ class _EventCardState extends State<EventCard> {
     }
   }
 
+  void _showLoginRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Login necessário'),
+          content: Text('Você precisa estar logado para reagir a este post.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Fechar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Fazer Login'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()));
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _handleReaction() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isLoggedIn = userProvider.isLoggedIn;
+
+    if (!isLoggedIn) {
+      _showLoginRequiredDialog();
+      return;
+    }
     if (_isProcessingReaction || _currentUserId.isEmpty) return;
 
     setState(() {
@@ -117,7 +157,6 @@ class _EventCardState extends State<EventCard> {
           });
         }
       }
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao reagir: $e')),
@@ -227,7 +266,9 @@ class _EventCardState extends State<EventCard> {
                         Row(
                           children: [
                             Text(
-                              widget.event.user?.username ?? widget.event.agency?.name ?? 'Nome não disponível',
+                              widget.event.user?.username ??
+                                  widget.event.agency?.name ??
+                                  'Nome não disponível',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
