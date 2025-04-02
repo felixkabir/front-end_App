@@ -3,7 +3,6 @@ import 'package:stivy/views/auth/login/login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/models/post/post.dart';
-import 'package:stivy/views/profile/profile.screen.dart';
 import 'package:stivy/controllers/reaction/reaction_controller.dart';
 import 'package:stivy/providers/user_provider.dart';
 import 'package:provider/provider.dart';

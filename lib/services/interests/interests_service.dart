@@ -4,7 +4,6 @@ import 'package:stivy/Api/ApiConfig.dart';
 import 'package:stivy/models/interest/interests_model.dart';
 
 class InterestService {
-
   Future<List<Interest>> fetchInterests() async {
     final response = await http.get(Uri.parse('${ApiConfig.apiBaseUrl}/interests'));
 

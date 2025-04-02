@@ -3,14 +3,14 @@ class Interest {
   final String createdAt;
   final String interestType;
   final String name;
-  final List<dynamic> users;
+  final List<dynamic>? users;
 
   Interest({
     required this.id,
     required this.createdAt,
     required this.interestType,
     required this.name,
-    required this.users,
+    this.users,
   });
 
   factory Interest.fromJson(Map<String, dynamic> json) {
@@ -29,7 +29,6 @@ class Interest {
     return other is Interest && other.id == id;
   }
 
-  // Implementação do hashCode
   @override
   int get hashCode => id.hashCode;
 }

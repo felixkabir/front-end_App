@@ -286,7 +286,11 @@ void _showLoginRequiredDialog() {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              widget.post.type,
+                              widget.post.type == "USER" 
+                                  ? 'Modelo'
+                                  : widget.post.type == "AGENCY"
+                                      ? 'Agência'
+                                      : 'Desconhecido',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[700],
